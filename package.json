@@ -1,0 +1,39 @@
+{
+  "name": "titaniumlib",
+  "version": "1.0.0",
+  "description": "Titanium SDK Utility Library",
+  "main": "./dist/index",
+  "author": "Axway, Inc. <npmjs@appcelerator.com>",
+  "maintainers": [
+    "Ewan Harris <eharris@axway.com>"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "appcelerator",
+    "titanium"
+  ],
+  "scripts": {
+    "build": "gulp build",
+    "coverage": "gulp coverage",
+    "docs": "gulp docs",
+    "prepare": "gulp build",
+    "test": "gulp test"
+  },
+  "dependencies": {
+    "appcd-fs": "^1.0.1",
+    "appcd-path": "^1.0.1"
+  },
+  "devDependencies": {
+    "appcd-gulp": "^1.0.1",
+    "gulp": "^3.9.1"
+  },
+  "homepage": "https://github.com/appcelerator/titaniumlib",
+  "bugs": "https://github.com/appcelerator/titaniumlib/issues",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/appcelerator/titaniumlib.git"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  }
+}
