@@ -237,6 +237,15 @@ appcd-path@^1.0.1:
   dependencies:
     source-map-support "^0.5.0"
 
+appcd-util@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/appcd-util/-/appcd-util-1.0.1.tgz#f2be2d5894ebb6cc82ae356f63df19edc5fa5f9e"
+  dependencies:
+    appcd-fs "^1.0.1"
+    lodash.get "^4.4.2"
+    semver "^5.4.1"
+    source-map-support "^0.5.0"
+
 append-transform@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/append-transform/-/append-transform-0.4.0.tgz#d76ebf8ca94d276e247a36bad44a4b74ab611991"
@@ -4091,7 +4100,7 @@ sax@^1.1.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
 
-"semver@2 || 3 || 4 || 5", semver@^5.3.0, semver@^5.5.0:
+"semver@2 || 3 || 4 || 5", semver@^5.3.0, semver@^5.4.1, semver@^5.5.0:
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.5.0.tgz#dc4bbc7a6ca9d916dee5d43516f0092b58f7b8ab"
 

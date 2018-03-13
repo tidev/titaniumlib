@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import semver from 'semver';
+import options from './options';
 
 import { expandPath } from 'appcd-path';
 import { isDir } from 'appcd-fs';
+import { arrayify, cacheSync, get } from 'appcd-util';
 
 /**
  * Cached regex for matching key/values in properties files.
@@ -78,3 +80,49 @@ export class TitaniumModule {
 }
 
 export default TitaniumModule;
+
+/**
+ * Detect Titanium modules
+ * @param {Boolean} [force] - When true ignore the cache  
+ * @returns {Object}
+ */
+export function getModules(force) {
+	return cacheSync('titaniumlib:modules', force, () => {
+		const results = {};
+		let searchPaths = arrayify(get(options, 'module.searchPaths'));
+		if (!searchPaths.length) {
+			searchPaths = locations[process.platform];
+		}
+		for (let dir of searchPaths) {
+			dir = expandPath(dir);
+			if (isDir(dir)) {
+				for (const platform of fs.readdirSync(dir)) {
+					const platformDir = path.join(dir, platform);
+					if (isDir(platformDir)) {
+						for (const moduleName of fs.readdirSync(platformDir)) {
+							const moduleDir = path.join(platformDir, moduleName);
+							if (isDir(moduleDir)) {
+								for (const version of fs.readdirSync(moduleDir)) {
+									const versionDir = path.join(moduleDir, version);
+									try {
+										const tiModule = new TitaniumModule(versionDir);
+										if (!results[platform]) {
+											results[platform] = {};
+										}
+										if (!results[platform][tiModule.moduleid]) {
+											results[platform][tiModule.moduleid] = {};
+										}
+										results[platform][tiModule.moduleid][tiModule.version] = tiModule;
+									} catch (e) {
+										// console.log(e);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return results;
+	});
+}

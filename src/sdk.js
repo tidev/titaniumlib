@@ -1,8 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import options from './options';
 
 import { expandPath } from 'appcd-path';
 import { isDir } from 'appcd-fs';
+import { arrayify, cacheSync, get } from 'appcd-util';
 
 /**
  * Common search paths for Titanium SDKs.
@@ -61,3 +63,32 @@ export class TitaniumSDK {
 }
 
 export default TitaniumSDK;
+
+/**
+ * Detect Titanium SDKs
+ * @param {Boolean} [force] - When true ignore the cache  
+ * @returns {Array<TitaniumSDK>}
+ */
+export function getSDKs(force) {
+	return cacheSync('titaniumlib:sdk', force, () => {
+		const results = [];
+		let searchPaths = arrayify(get(options, 'sdk.searchPaths'));
+		if (!searchPaths.length) {
+			searchPaths = locations[process.platform];
+		}
+		for (let dir of searchPaths) {
+			dir = expandPath(dir);
+			if (isDir(dir)) {
+				for (let sdkDir of fs.readdirSync(dir)) {
+					sdkDir = path.join(dir, sdkDir);
+					try {
+						results.push(new TitaniumSDK(sdkDir));
+					} catch (e) {
+						// Do nothing
+					}
+				}
+			}
+		}
+		return results;
+	});
+}
