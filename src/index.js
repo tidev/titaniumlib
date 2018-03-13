@@ -4,9 +4,10 @@ if (!Error.prepareStackTrace) {
 }
 
 import TitaniumSDK, * as sdk from './sdk';
-import TitaniumModule from './module';
+import TitaniumModule, * as modules from './module';
 
 export {
+	modules,
 	sdk,
 	TitaniumSDK,
 	TitaniumModule

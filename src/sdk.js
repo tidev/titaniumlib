@@ -8,18 +8,18 @@ import { isDir } from 'appcd-fs';
  * Common search paths for Titanium SDKs.
  * @type {Object}
  */
-export const sdkLocations = {
+export const locations = {
 	darwin: [
-		'~/Library/Application Support/Titanium',
-		'/Library/Application Support/Titanium'
+		'~/Library/Application Support/Titanium/mobilesdk/osx',
+		'/Library/Application Support/Titanium/mobilesdk/osx'
 	],
 	linux: [
-		'~/.titanium'
+		'~/.titanium/mobilesdk/linux'
 	],
 	win32: [
-		'%ProgramData%\\Titanium',
-		'%APPDATA%\\Titanium',
-		'%ALLUSERSPROFILE%\\Application Data\\Titanium'
+		'%ProgramData%\\Titanium\\mobilesdk\\win32',
+		'%APPDATA%\\Titanium\\mobilesdk\\win32',
+		'%ALLUSERSPROFILE%\\Application Data\\Titanium\\mobilesdk\\win32'
 	]
 };
 

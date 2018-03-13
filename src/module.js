@@ -12,6 +12,25 @@ import { isDir } from 'appcd-fs';
 const iniRegExp = /^(?!\s*#)\s*([^:\s]+)\s*:\s*(.+?)\s*$/;
 
 /**
+ * Common search paths for Titanium Modules.
+ * @type {Object}
+ */
+export const locations = {
+	darwin: [
+		'~/Library/Application Support/Titanium/modules',
+		'/Library/Application Support/Titanium/modules'
+	],
+	linux: [
+		'~/.titanium/modules'
+	],
+	win32: [
+		'%ProgramData%\\Titanium\\modules',
+		'%APPDATA%\\Titanium\\modules',
+		'%ALLUSERSPROFILE%\\Application Data\\Titanium\\modules'
+	]
+};
+
+/**
  * Titanium Module information object.
  */
 export class TitaniumModule {
