@@ -161,7 +161,7 @@ describe('module', () => {
 				android: {
 					'com.test.module': {
 						'1.0.0': {
-							path: '/Users/eharris/Documents/git/titaniumlib/test/fixtures/module/android/test-module/1.0.0',
+							path: path.join(fixturesDir, 'module/android/test-module/1.0.0'),
 							platform: 'android',
 							version: '1.0.0',
 							apiversion: '4',
@@ -180,7 +180,7 @@ describe('module', () => {
 				commonjs: {
 					'com.test.module': {
 						'1.0.0': {
-							path: '/Users/eharris/Documents/git/titaniumlib/test/fixtures/module/commonjs/test-module/1.0.0',
+							path: path.join(fixturesDir, 'module/commonjs/test-module/1.0.0'),
 							platform: 'commonjs',
 							version: '1.0.0',
 							description: 'testModule',
@@ -197,7 +197,7 @@ describe('module', () => {
 				ios: {
 					'com.test.module': {
 						'1.0.0': {
-							path: '/Users/eharris/Documents/git/titaniumlib/test/fixtures/module/ios/test-module/1.0.0',
+							path: path.join(fixturesDir, 'module/ios/test-module/1.0.0'),
 							platform: 'ios',
 							version: '1.0.0',
 							apiversion: '2',
@@ -216,7 +216,7 @@ describe('module', () => {
 				iphone: {
 					'com.test.module':  {
 						'1.0.0': {
-							path: '/Users/eharris/Documents/git/titaniumlib/test/fixtures/module/iphone/test-module/1.0.0',
+							path: path.join(fixturesDir, 'module/iphone/test-module/1.0.0'),
 							platform: 'ios',
 							version: '1.0.0',
 							apiversion: '2',
@@ -235,7 +235,7 @@ describe('module', () => {
 				windows: {
 					'com.test.module': {
 						'1.0.0': {
-							path: '/Users/eharris/Documents/git/titaniumlib/test/fixtures/module/windows/test-module/1.0.0',
+							path: path.join(fixturesDir, 'module/windows/test-module/1.0.0'),
 							platform: 'ios',
 							version: '1.0.0',
 							apiversion: '4',

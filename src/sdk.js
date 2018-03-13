@@ -66,7 +66,7 @@ export default TitaniumSDK;
 
 /**
  * Detect Titanium SDKs
- * @param {Boolean} [force] - When true ignore the cache  
+ * @param {Boolean} [force] - When true ignore the cache
  * @returns {Array<TitaniumSDK>}
  */
 export function getSDKs(force) {

@@ -83,7 +83,7 @@ export default TitaniumModule;
 
 /**
  * Detect Titanium modules
- * @param {Boolean} [force] - When true ignore the cache  
+ * @param {Boolean} [force] - When true ignore the cache
  * @returns {Object}
  */
 export function getModules(force) {
