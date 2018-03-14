@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import options from './options';
 
+import { arrayify, cacheSync, get } from 'appcd-util';
 import { expandPath } from 'appcd-path';
 import { isDir } from 'appcd-fs';
-import { arrayify, cacheSync, get } from 'appcd-util';
 
 /**
  * Common search paths for Titanium SDKs.
