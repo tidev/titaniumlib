@@ -114,7 +114,7 @@ export function getModules(force) {
 										}
 										results[platform][tiModule.moduleid][tiModule.version] = tiModule;
 									} catch (e) {
-										// console.log(e);
+										// Do nothing
 									}
 								}
 							}
