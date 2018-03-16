@@ -13,6 +13,8 @@ import { isDir } from 'appcd-fs';
  */
 const iniRegExp = /^(?!\s*#)\s*([^:\s]+)\s*:\s*(.+?)\s*$/;
 
+const numberRegExp = /^\d+(\.\d*)?$/;
+
 /**
  * Common search paths for Titanium Modules.
  * @type {Object}
@@ -62,6 +64,13 @@ export class TitaniumModule {
 			for (const line of fs.readFileSync(manifestFile, 'utf8').split(/\r?\n/)) {
 				const m = line.match(iniRegExp);
 				if (m) {
+					if (numberRegExp.test(m[2]) && m[1] !== 'version') {
+						const val = parseFloat(m[2]);
+						if (!isNaN(val)) {
+							this[m[1]] = val;
+							continue;
+						}
+					}
 					this[m[1]] = m[2];
 				}
 			}
@@ -69,12 +78,16 @@ export class TitaniumModule {
 			throw new Error('Directory does not contain a valid manifest');
 		}
 
+		if (!this.platform.trim().length) {
+			throw new Error('Expected platform to be a valid string');
+		}
+
 		if (this.platform === 'iphone') {
 			this.platform = 'ios';
 		}
 
 		if (!semver.valid(this.version)) {
-			throw new Error(`Version ${this.version} is not valid`);
+			throw new Error(`Version "${this.version}" is not valid`);
 		}
 	}
 }

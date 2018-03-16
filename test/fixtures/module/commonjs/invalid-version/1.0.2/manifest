@@ -2,9 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 1.0.0
-apiversion: 4
-architectures: ARM x86
+version: NaN
 description: testModule
 author: Your Name
 license: Specify your license
@@ -14,5 +12,5 @@ copyright: Copyright (c) 2018 by Your Company
 name: testModule
 moduleid: com.test.module
 guid: dcaea77e-2860-42c1-a57b-319f81da10e0
-platform: windows
+platform: commonjs
 minsdk: 7.2.0

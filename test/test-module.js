@@ -34,11 +34,21 @@ describe('module', () => {
 		it('should error if version is not valid semver', () => {
 			expect(() => {
 				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.0'));
-			}).to.throw(Error, 'Version \'foo\' is not valid');
+			}).to.throw(Error, 'Version "foo" is not valid');
 
 			expect(() => {
 				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.1'));
-			}).to.throw(Error, 'Version 1.0 is not valid');
+			}).to.throw(Error, 'Version "1.0" is not valid');
+
+			expect(() => {
+				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.2'));
+			}).to.throw(Error, 'Version "NaN" is not valid');
+		});
+
+		it('should error if string is not valid string', () => {
+			expect(() => {
+				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-platform',  '1.0.0'));
+			}).to.throw(Error, 'Expected platform to be a valid string');
 		});
 
 		it('should detect an Android module', () => {
@@ -49,7 +59,7 @@ describe('module', () => {
 				path: modPath,
 				platform: 'android',
 				version: '1.0.0',
-				apiversion: '4',
+				apiversion: 4,
 				architectures: 'arm64-v8a armeabi-v7a x86',
 				description: 'testModule',
 				author: 'Your Name',
@@ -89,7 +99,7 @@ describe('module', () => {
 				path: modPath,
 				platform: 'ios',
 				version: '1.0.0',
-				apiversion: '2',
+				apiversion: 2,
 				architectures: 'armv7 arm64 i386 x86_64',
 				description: 'testModule',
 				author: 'Your Name',
@@ -110,7 +120,7 @@ describe('module', () => {
 				path: modPath,
 				platform: 'ios',
 				version: '1.0.0',
-				apiversion: '2',
+				apiversion: 2,
 				architectures: 'armv7 arm64 i386 x86_64',
 				description: 'testModule',
 				author: 'Your Name',
@@ -129,9 +139,9 @@ describe('module', () => {
 
 			expect(modInfo).to.deep.equal({
 				path: modPath,
-				platform: 'ios',
+				platform: 'windows',
 				version: '1.0.0',
-				apiversion: '4',
+				apiversion: 4,
 				architectures: 'ARM x86',
 				description: 'testModule',
 				author: 'Your Name',
@@ -164,7 +174,7 @@ describe('module', () => {
 							path: path.join(fixturesDir, 'module/android/test-module/1.0.0'),
 							platform: 'android',
 							version: '1.0.0',
-							apiversion: '4',
+							apiversion: 4,
 							architectures: 'arm64-v8a armeabi-v7a x86',
 							description: 'testModule',
 							author: 'Your Name',
@@ -200,7 +210,7 @@ describe('module', () => {
 							path: path.join(fixturesDir, 'module/ios/test-module/1.0.0'),
 							platform: 'ios',
 							version: '1.0.0',
-							apiversion: '2',
+							apiversion: 2,
 							architectures: 'armv7 arm64 i386 x86_64',
 							description: 'testModule',
 							author: 'Your Name',
@@ -219,7 +229,7 @@ describe('module', () => {
 							path: path.join(fixturesDir, 'module/iphone/test-module/1.0.0'),
 							platform: 'ios',
 							version: '1.0.0',
-							apiversion: '2',
+							apiversion: 2,
 							architectures: 'armv7 arm64 i386 x86_64',
 							description: 'testModule',
 							author: 'Your Name',
@@ -236,9 +246,9 @@ describe('module', () => {
 					'com.test.module': {
 						'1.0.0': {
 							path: path.join(fixturesDir, 'module/windows/test-module/1.0.0'),
-							platform: 'ios',
+							platform: 'windows',
 							version: '1.0.0',
-							apiversion: '4',
+							apiversion: 4,
 							architectures: 'ARM x86',
 							description: 'testModule',
 							author: 'Your Name',
