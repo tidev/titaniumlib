@@ -380,7 +380,7 @@ describe('sdk', () => {
 					ts: '20190304080000',
 					githash: 'c67357105b2eeb56a8940cf583f96fe21f94e213',
 					date: new Date('2019-03-04T14:00:00.000Z'),
-					url: 'http://localhost:1337/master/mobilesdk-0.0.0.v20190304080000-osx.zip'
+					url: `http://localhost:1337/master/mobilesdk-0.0.0.v20190304080000-${os}.zip`
 				}
 			});
 		});
