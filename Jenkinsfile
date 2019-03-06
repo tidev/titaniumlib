@@ -6,36 +6,29 @@ def nodeVersion = '8.11.4'
 def unitTests(os, nodeVersion) {
   return {
     node(os) {
-      nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
-        stage('Test') {
+      try {
+        nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
           timeout(15) {
             unstash 'sources'
             // Install yarn if not installed
-            if('windows'.equals(os)) {
-              if (bat(returnStatus: true, script: 'where yarn') != 0) {
-                bat 'npm install -g yarn'
-              }
-              bat 'yarn install'
-            } else {
-              if (sh(returnStatus: true, script: 'which yarn') != 0) {
-                sh 'npm install -g yarn'
-              }
-              sh 'yarn install'
-           }
-           fingerprint 'package.json'
+            ensureYarn()
+            command 'yarn install' // runs bat on win, sh on unix/mac
+
             try {
-              if('windows'.equals(os)) {
-                bat 'yarn run coverage'
-              } else {
-                sh 'yarn run coverage'
-              }
+              command 'yarn run coverage' // runs bat on win, sh on unix/mac
             } finally {
               // record results even if tests/coverage 'fails'
               junit 'junit.xml'
+
+              if (fileExists('coverage/cobertura-coverage.xml')) {
+								step([$class: 'CoberturaPublisher', autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: 'coverage/cobertura-coverage.xml', failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false])
+							}
             }
           } // timeout
-        } // test
-      } // nodejs
+        } // nodejs
+      } finally {
+        deleteDir() // wipe the workspace no matter what
+      }
     }  // node
   }
 }
@@ -59,7 +52,8 @@ timestamps {
       isMaster = env.BRANCH_NAME.equals('master')
       packageVersion = jsonParse(readFile('package.json'))['version']
       currentBuild.displayName = "#${packageVersion}-${currentBuild.number}"
-      stash allowEmpty: true, name: 'sources', useDefaultExcludes: false
+      fingerprint 'package.json'
+      stash 'sources'
     }
   }
 
