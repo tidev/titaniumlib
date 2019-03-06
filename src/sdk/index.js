@@ -72,7 +72,7 @@ export async function getBuilds(branch = 'master') {
 			version: m[1],
 			ts:      m[2],
 			githash: git_revision,
-			date:    new Date(`${m.slice(4, 6).join('/')}/${m[3]} ${m.slice(6, 9).join(':')}`),
+			date:    new Date(`${m[3]}-${m.slice(4, 6).join('-')}T${m.slice(6, 9).join(':')}.000Z`),
 			url:     urls.build.replace(/<BRANCH>/, git_branch).replace(/<FILENAME>/, filename)
 		};
 	}
