@@ -1,4 +1,4 @@
-# 1.1.0
+# 1.1.0 (Mar 6, 2019)
 
  * Upgraded to Gulp 4.
  * Migrated functions for getting builds, releases, installing SDKs, and uninstalling SDKs from
