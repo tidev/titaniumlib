@@ -1,59 +1,61 @@
 import path from 'path';
 
-import * as titaniumlib from '../dist/index';
+import { modules, options } from '../dist/index';
 
 const fixturesDir = path.join(__dirname, 'fixtures');
+const { getModules, TitaniumModule } = modules;
+
 describe('module', () => {
 	describe('TitaniumModule', () => {
 		it('should error if directory is invalid', () => {
 			expect(() => {
-				new titaniumlib.TitaniumModule();
+				new TitaniumModule();
 			}).to.throw(TypeError, 'Expected directory to be a valid string');
 
 			expect(() => {
-				new titaniumlib.TitaniumModule(123);
+				new TitaniumModule(123);
 			}).to.throw(TypeError, 'Expected directory to be a valid string');
 
 			expect(() => {
-				new titaniumlib.TitaniumModule('');
+				new TitaniumModule('');
 			}).to.throw(TypeError, 'Expected directory to be a valid string');
 		});
 
 		it('should error if directory does not exist', () => {
 			expect(() => {
-				new titaniumlib.TitaniumModule(path.join(__dirname, 'doesnotexist'));
+				new TitaniumModule(path.join(__dirname, 'doesnotexist'));
 			}).to.throw(Error, 'Directory does not exist');
 		});
 
 		it('should error if directory has no manifest', () => {
 			expect(() => {
-				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'empty'));
+				new TitaniumModule(path.join(fixturesDir, 'empty'));
 			}).to.throw(Error, 'Directory does not contain a valid manifest');
 		});
 
 		it('should error if version is not valid semver', () => {
 			expect(() => {
-				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.0'));
+				new TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.0'));
 			}).to.throw(Error, 'Version "foo" is not valid');
 
 			expect(() => {
-				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.1'));
+				new TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.1'));
 			}).to.throw(Error, 'Version "1.0" is not valid');
 
 			expect(() => {
-				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.2'));
+				new TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-version',  '1.0.2'));
 			}).to.throw(Error, 'Version "NaN" is not valid');
 		});
 
 		it('should error if string is not valid string', () => {
 			expect(() => {
-				new titaniumlib.TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-platform',  '1.0.0'));
+				new TitaniumModule(path.join(fixturesDir, 'module', 'commonjs', 'invalid-platform',  '1.0.0'));
 			}).to.throw(Error, 'Expected platform to be a valid string');
 		});
 
 		it('should detect an Android module', () => {
 			const modPath = path.join(fixturesDir, 'module', 'android', 'test-module',  '1.0.0');
-			const modInfo = new titaniumlib.TitaniumModule(modPath);
+			const modInfo = new TitaniumModule(modPath);
 
 			expect(modInfo).to.deep.equal({
 				path: modPath,
@@ -74,7 +76,7 @@ describe('module', () => {
 
 		it('should detect a commonjs module', () => {
 			const modPath = path.join(fixturesDir, 'module', 'commonjs', 'test-module',  '1.0.0');
-			const modInfo = new titaniumlib.TitaniumModule(modPath);
+			const modInfo = new TitaniumModule(modPath);
 
 			expect(modInfo).to.deep.equal({
 				path: modPath,
@@ -93,7 +95,7 @@ describe('module', () => {
 
 		it('should detect an iOS module', () => {
 			const modPath = path.join(fixturesDir, 'module', 'ios', 'test-module', '1.0.0');
-			const modInfo = new titaniumlib.TitaniumModule(modPath);
+			const modInfo = new TitaniumModule(modPath);
 
 			expect(modInfo).to.deep.equal({
 				path: modPath,
@@ -114,7 +116,7 @@ describe('module', () => {
 
 		it('should detect an iOS module where the path and manifest are iphone', () => {
 			const modPath = path.join(fixturesDir, 'module', 'iphone', 'test-module', '1.0.0');
-			const modInfo = new titaniumlib.TitaniumModule(modPath);
+			const modInfo = new TitaniumModule(modPath);
 
 			expect(modInfo).to.deep.equal({
 				path: modPath,
@@ -135,7 +137,7 @@ describe('module', () => {
 
 		it('should detect a Windows module', () => {
 			const modPath = path.join(fixturesDir, 'module', 'windows', 'test-module', '1.0.0');
-			const modInfo = new titaniumlib.TitaniumModule(modPath);
+			const modInfo = new TitaniumModule(modPath);
 
 			expect(modInfo).to.deep.equal({
 				path: modPath,
@@ -157,16 +159,16 @@ describe('module', () => {
 
 	describe('getModules', () => {
 		beforeEach(function () {
-			this.searchPaths = titaniumlib.options.module.searchPaths;
+			this.searchPaths = options.module.searchPaths;
 		});
 
 		afterEach(function () {
-			titaniumlib.options.module.searchPaths = this.searchPaths;
+			options.module.searchPaths = this.searchPaths;
 		});
 
 		it('should detect sdks', () => {
-			titaniumlib.options.module.searchPaths = path.join(fixturesDir, 'module');
-			const modules = titaniumlib.modules.getModules(true);
+			options.module.searchPaths = path.join(fixturesDir, 'module');
+			const modules = getModules(true);
 			expect(modules).to.deep.equal({
 				android: {
 					'com.test.module': {
@@ -265,7 +267,7 @@ describe('module', () => {
 		});
 
 		it('should detect system sdks', () => {
-			const modules = titaniumlib.modules.getModules(true);
+			const modules = getModules(true);
 			expect(modules).to.be.a('object');
 		});
 	});
