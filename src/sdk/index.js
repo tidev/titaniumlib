@@ -47,7 +47,7 @@ const ciBuildRegExp = /^mobilesdk-(.+)(?:\.v|-)((\d{4})(\d{2})(\d{2})(\d{2})(\d{
  * A regex to test if a string is a URL or path to a zip file.
  * @type {RegExp}
  */
-const uriRegExp = /^(https?:\/\/.+)|(?:file:\/\/\/(.+))$/;
+const uriRegExp = /^(https?:\/\/.+)|(?:file:\/\/(.+))$/;
 
 /**
  * Retrieves the list of CI branches.
