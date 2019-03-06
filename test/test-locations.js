@@ -1,3 +1,4 @@
+import path from 'path';
 import { getInstallPaths } from '../dist/locations';
 
 describe('getInstallPaths()', () => {
@@ -14,7 +15,7 @@ describe('getInstallPaths()', () => {
 		const paths = getInstallPaths('/foo');
 		expect(paths).to.be.an('array');
 		expect(paths).to.have.lengthOf.at.least(2);
-		expect(paths).to.include('/foo');
+		expect(paths).to.include(path.resolve('/foo'));
 	});
 
 	it('should make sure paths are unique', () => {

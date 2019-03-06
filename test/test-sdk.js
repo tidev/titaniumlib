@@ -290,7 +290,10 @@ describe('sdk', () => {
 			expect(branches).to.deep.equal(data.branches);
 		});
 
-		it('should error if server cannot be resolved', async () => {
+		it('should error if server cannot be resolved', async function () {
+			this.timeout(5000);
+			this.slow(2000);
+
 			options.sdk.urls.branches = 'http://does_not_exist';
 
 			try {
