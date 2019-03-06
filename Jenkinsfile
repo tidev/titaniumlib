@@ -19,6 +19,10 @@ def unitTests(os, nodeVersion) {
             } finally {
               // record results even if tests/coverage 'fails'
               junit 'junit.xml'
+
+              if (fileExists('coverage/cobertura-coverage.xml')) {
+								step([$class: 'CoberturaPublisher', autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: 'coverage/cobertura-coverage.xml', failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false])
+							}
             }
           } // timeout
         } // nodejs
