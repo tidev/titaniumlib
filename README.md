@@ -1,11 +1,21 @@
 # Titanium SDK Utility Library
 
-A suite of Titanium SDK development-related functions.
+A suite of Titanium SDK development-related APIs.
+
+## API
+
+### SDK
+
+
+
+### Modules
+
+### Project
 
 ## License
 
-This project is open source and provided under the Apache Public License (version 2). Please make
-sure you see the `LICENSE` file included in this distribution for more details on the license. Also,
-please take notice of the privacy notice at the end of the file.
+This project is open source under the [Apache Public License v2][1] and is developed by
+[Axway, Inc](http://www.axway.com/) and the community. Please read the [`LICENSE`][1] file included
+in this distribution for more information.
 
-#### (C) Copyright 2014-2018, [Axway, Inc](http://www.axway.com/) Inc. All Rights Reserved.
+[1]: https://github.com/appcelerator/titaniumlib/blob/master/LICENSE

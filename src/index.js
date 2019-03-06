@@ -1,16 +1,20 @@
-/* istanbul ignore if */
+// istanbul ignore if
 if (!Error.prepareStackTrace) {
 	require('source-map-support/register');
 }
 
 export { default as options } from './options';
 
-import TitaniumSDK, * as sdk from './sdk';
-import TitaniumModule, * as modules from './module';
+import * as modules from './module';
+import * as project from './project';
+import * as sdk from './sdk';
+
+import { getInstallPaths, locations } from './locations';
 
 export {
+	getInstallPaths,
+	locations,
 	modules,
-	sdk,
-	TitaniumSDK,
-	TitaniumModule
+	project,
+	sdk
 };
