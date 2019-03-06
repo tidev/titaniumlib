@@ -8,34 +8,17 @@ import TitaniumSDK from './titanium-sdk';
 import tmp from 'tmp';
 
 import { architecture, extractZip, fetchJSON, os, version } from '../util';
-import { arrayify, cacheSync, get, unique } from 'appcd-util';
+import { arrayify, cacheSync, get } from 'appcd-util';
 import { expandPath } from 'appcd-path';
 import { isDir } from 'appcd-fs';
 import { STATUS_CODES } from 'http';
+
+import { getInstallPaths } from '../locations';
 
 export { TitaniumSDK };
 
 const { log } = snooplogg;
 const { highlight } = snooplogg.styles;
-
-/**
- * Common search paths for Titanium SDKs.
- * @type {Object}
- */
-export const locations = {
-	darwin: [
-		'~/Library/Application Support/Titanium',
-		'/Library/Application Support/Titanium'
-	],
-	linux: [
-		'~/.titanium'
-	],
-	win32: [
-		'%ProgramData%\\Titanium',
-		'%APPDATA%\\Titanium',
-		'%ALLUSERSPROFILE%\\Application Data\\Titanium'
-	]
-};
 
 /**
  * A regex to extract a continuous integration build version and platform from the filename.
@@ -98,23 +81,6 @@ export async function getBuilds(branch = 'master') {
 }
 
 /**
- * Returns a list of Titanium SDK installation locations.
- *
- * @param {String} [defaultPath] - A path that represents the default and is the first path in the list.
- * @returns {Array.<String>}
- */
-export function getInstallPaths(defaultPath) {
-	const paths = locations[process.platform].map(p => expandPath(p));
-	if (defaultPath) {
-		if (typeof defaultPath !== 'string') {
-			throw new TypeError('Expected default install path to be a string');
-		}
-		paths.unshift(expandPath(defaultPath));
-	}
-	return unique(paths);
-}
-
-/**
  * Retreives a map of Titanium SDK versions to release info including the download URL. By default,
  * the latest version is added to the map of releases.
  *
@@ -166,7 +132,7 @@ export function getInstalledSDKs(force) {
 		let searchPaths = arrayify(get(options, 'sdk.searchPaths'));
 
 		if (!searchPaths.length) {
-			searchPaths = locations[process.platform];
+			searchPaths = getInstallPaths();
 		}
 
 		for (let dir of searchPaths) {

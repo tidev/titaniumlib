@@ -408,38 +408,6 @@ describe('sdk', () => {
 		});
 	});
 
-	describe('getInstallPaths()', () => {
-		it('should return array of install paths', () => {
-			const paths = sdk.getInstallPaths();
-			expect(paths).to.be.an('array');
-			expect(paths).to.have.lengthOf.at.least(1);
-
-			expect(paths[0]).to.be.a('string');
-			expect(paths[0]).to.not.equal('');
-		});
-
-		it('should return install paths including default path', () => {
-			const paths = sdk.getInstallPaths('/foo');
-			expect(paths).to.be.an('array');
-			expect(paths).to.have.lengthOf.at.least(2);
-			expect(paths).to.include('/foo');
-		});
-
-		it('should make sure paths are unique', () => {
-			let paths = sdk.getInstallPaths();
-			const len = paths.length;
-
-			paths = sdk.getInstallPaths(paths[0]);
-			expect(paths).to.have.lengthOf(len);
-		});
-
-		it('should error if default path is not a string', () => {
-			expect(() => {
-				sdk.getInstallPaths(123);
-			}).to.throw(TypeError, 'Expected default install path to be a string');
-		});
-	});
-
 	describe('getReleases()', () => {
 		it('should get a list of releases (production)', async () => {
 			const releases = await sdk.getReleases();
