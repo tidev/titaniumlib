@@ -7,8 +7,8 @@ import snooplogg from 'snooplogg';
 import TitaniumSDK from './titanium-sdk';
 import tmp from 'tmp';
 
-import { architecture, extractZip, fetchJSON, os, version } from '../util';
-import { arrayify, cacheSync, get } from 'appcd-util';
+import { architecture, buildRequestParams, extractZip, fetchJSON, os, version } from '../util';
+import { arrayify, cacheSync, get, unique } from 'appcd-util';
 import { expandPath } from 'appcd-path';
 import { isDir } from 'appcd-fs';
 import { STATUS_CODES } from 'http';
@@ -38,7 +38,9 @@ const uriRegExp = /^(https?:\/\/.+)|(?:file:\/\/(.+))$/;
  * @returns {Promise<Object>}
  */
 export async function getBranches() {
-	return await fetchJSON(options.sdk.urls.branches);
+	const results = await fetchJSON(options.sdk.urls.branches);
+	results.branches.sort();
+	return results;
 }
 
 /**
@@ -78,6 +80,33 @@ export async function getBuilds(branch = 'master') {
 	}
 
 	return results;
+}
+
+/**
+ * Detects installed Titanium SDKs.
+ *
+ * @param {Boolean} [force=false] - When `true`, bypasses the cache and redetects the SDKs.
+ * @returns {Array.<TitaniumSDK>}
+ */
+export function getInstalledSDKs(force) {
+	return cacheSync('titaniumlib:sdk', force, () => {
+		const results = [];
+
+		for (const dir of getPaths()) {
+			if (isDir(dir)) {
+				for (let sdkDir of fs.readdirSync(dir)) {
+					sdkDir = path.join(dir, sdkDir);
+					try {
+						results.push(new TitaniumSDK(sdkDir));
+					} catch (e) {
+						// Do nothing
+					}
+				}
+			}
+		}
+
+		return results;
+	});
 }
 
 /**
@@ -121,53 +150,28 @@ export async function getReleases(noLatest) {
 }
 
 /**
- * Detect Titanium SDKs
+ * Returns a list of possible SDK install paths.
  *
- * @param {Boolean} [force=false] - When true ignore the cache
- * @returns {Array<TitaniumSDK>}
+ * @returns {Array.<String>}
  */
-export function getInstalledSDKs(force) {
-	return cacheSync('titaniumlib:sdk', force, () => {
-		const results = [];
-		let searchPaths = arrayify(get(options, 'sdk.searchPaths'));
-
-		if (!searchPaths.length) {
-			searchPaths = getInstallPaths();
-		}
-
-		for (let dir of searchPaths) {
-			dir = expandPath(dir);
-			if (isDir(dir)) {
-				// do a quick check if this directory contains a 'mobilesdk' directory
-				const dir2 = path.join(dir, 'mobilesdk', os);
-				if (isDir(dir2)) {
-					dir = dir2;
-				}
-
-				for (let sdkDir of fs.readdirSync(dir)) {
-					sdkDir = path.join(dir, sdkDir);
-					try {
-						results.push(new TitaniumSDK(sdkDir));
-					} catch (e) {
-						// Do nothing
-					}
-				}
-			}
-		}
-
-		return results;
-	});
+export function getPaths() {
+	return unique([
+		...arrayify(get(options, 'sdk.searchPaths'), true).map(p => expandPath(p)),
+		...getInstallPaths().map(p => expandPath(p, 'mobilesdk', os))
+	]);
 }
 
 /**
  * Install a Titanium SDK from either a URI or version. A URI may be either a local file, a URL, an
  * SDK version, a CI branch, or a CI branch and build hash.
  *
- * @param {Object} params - Various parameters.
- * @param {String} [params.defaultInstallPath] - The default install path. Defaults to the platform-
- * specific install path.
- * @param {Context} [params.downloadDir] - When `uri` is a URL, release, or build, download the SDK to this directory.
- * @param {Boolean} [params.keep=false] - When `true` and `uri` is a URL, release, or build, then
+ * @param {Object} [params] - Various parameters.
+ * @param {Context} [params.downloadDir] - When `uri` is a URL, release, or build, download the SDK
+ * to this directory.
+ * @param {String} [params.installDir] - The path to install the SDK. Defaults to the first path in
+ * the list of Titanium install locations.
+ * @param {Boolean} [params.keep=false] - When `true` and `uri` is a URL, release, or build, and
+ * `downloadDir` is specified, then the downloaded SDK `.zip` file is not deleted after install.
  * @param {Boolean} [params.overwrite=false] - When `true`, overwrites an existing Titanium SDK
  * installation, otherwise an error is thrown.
  * @param {String} [params.uri] - A URI to a local file or remote URL to download.
@@ -297,12 +301,13 @@ export async function install(params = {}) {
 
 		if (!downloadDir) {
 			downloadDir = path.dirname(downloadedFile);
+			params.keep = false;
 		}
 		await fs.mkdirp(downloadDir);
 
 		file = await new Promise((resolve, reject) => {
 			log(`Downloading ${highlight(url)} => ${highlight(downloadedFile)}`);
-			const req = request({ url });
+			const req = request(buildRequestParams({ url }));
 
 			const out = fs.createWriteStream(downloadedFile);
 			req.pipe(out);
@@ -336,8 +341,15 @@ export async function install(params = {}) {
 	// eslint-disable-next-line security/detect-non-literal-regexp
 	const sdkDestRegExp = new RegExp(`^mobilesdk[/\\\\]${os}[/\\\\]([^/\\\\]+)`);
 	const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-' });
-	const titaniumDir = getInstallPaths(params.defaultInstallPath)[0]; // first path is always the default
+	const titaniumDir = params.installDir ? expandPath(params.installDir) : getInstallPaths()[0];
 	let name;
+	let dest = null;
+
+	if (!titaniumDir) {
+		throw new Error('Unable to determine the Titanium directory');
+	}
+
+	log(`Using Titanium directory: ${highlight(titaniumDir)}`);
 
 	try {
 		await extractZip({
@@ -363,14 +375,14 @@ export async function install(params = {}) {
 		// step 3: move the sdk files to the dest
 
 		let src = path.join(tempDir, 'mobilesdk', os, name);
-		let dest = path.join(titaniumDir, 'mobilesdk', os, name);
+		dest = path.join(titaniumDir, 'mobilesdk', os, name);
 		log(`Moving SDK files: ${highlight(src)} => ${highlight(dest)}`);
 		await fs.move(src, dest, { overwrite: true });
 
 		// install the modules
 		src = path.join(tempDir, 'modules');
 		if (isDir(src)) {
-			dest = path.join(titaniumDir, 'modules');
+			const modulesDest = path.join(titaniumDir, 'modules');
 
 			for (const platform of fs.readdirSync(src)) {
 				const srcPlatformDir = path.join(src, platform);
@@ -390,7 +402,7 @@ export async function install(params = {}) {
 							continue;
 						}
 
-						const destDir = path.join(dest, platform, moduleName, ver);
+						const destDir = path.join(modulesDest, platform, moduleName, ver);
 						log(`Moving module files ${highlight(`${platform}/${moduleName}@${ver}`)}: ${highlight(srcVersionDir)} => ${highlight(destDir)}`);
 
 						if (!params.overwrite && isDir(destDir)) {
@@ -412,6 +424,8 @@ export async function install(params = {}) {
 		log(`Removing ${highlight(downloadedFile)}`);
 		await fs.remove(downloadedFile);
 	}
+
+	return dest;
 }
 
 /**

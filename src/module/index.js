@@ -3,30 +3,13 @@ import path from 'path';
 import options from '../options';
 import TitaniumModule from './titanium-module';
 
-import { arrayify, cacheSync, get } from 'appcd-util';
+import { arrayify, cacheSync, get, unique } from 'appcd-util';
 import { expandPath } from 'appcd-path';
 import { isDir } from 'appcd-fs';
 
-export { TitaniumModule };
+import { getInstallPaths } from '../locations';
 
-/**
- * Common search paths for Titanium Modules.
- * @type {Object}
- */
-export const locations = {
-	darwin: [
-		'~/Library/Application Support/Titanium/modules',
-		'/Library/Application Support/Titanium/modules'
-	],
-	linux: [
-		'~/.titanium/modules'
-	],
-	win32: [
-		'%ProgramData%\\Titanium\\modules',
-		'%APPDATA%\\Titanium\\modules',
-		'%ALLUSERSPROFILE%\\Application Data\\Titanium\\modules'
-	]
-};
+export { TitaniumModule };
 
 /**
  * Detect Titanium modules
@@ -34,15 +17,11 @@ export const locations = {
  * @param {Boolean} [force] - When true ignore the cache
  * @returns {Object}
  */
-export function getModules(force) {
+export function getInstalledModules(force) {
 	return cacheSync('titaniumlib:modules', force, () => {
 		const results = {};
-		let searchPaths = arrayify(get(options, 'module.searchPaths'));
-		if (!searchPaths.length) {
-			searchPaths = locations[process.platform];
-		}
-		for (let dir of searchPaths) {
-			dir = expandPath(dir);
+
+		for (let dir of getPaths()) {
 			if (!isDir(dir)) {
 				continue;
 			}
@@ -77,6 +56,19 @@ export function getModules(force) {
 				}
 			}
 		}
+
 		return results;
 	});
+}
+
+/**
+ * Returns a list of possible module install paths.
+ *
+ * @returns {Array.<String>}
+ */
+export function getPaths() {
+	return unique([
+		...arrayify(get(options, 'module.searchPaths'), true).map(p => expandPath(p)),
+		...getInstallPaths().map(p => expandPath(p, 'modules'))
+	]);
 }

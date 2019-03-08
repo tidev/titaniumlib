@@ -3,7 +3,7 @@ import path from 'path';
 import { modules, options } from '../dist/index';
 
 const fixturesDir = path.join(__dirname, 'fixtures');
-const { getModules, TitaniumModule } = modules;
+const { getInstalledModules, TitaniumModule } = modules;
 
 describe('module', () => {
 	describe('TitaniumModule', () => {
@@ -157,18 +157,20 @@ describe('module', () => {
 		});
 	});
 
-	describe('getModules', () => {
+	describe('getInstalledModules', () => {
 		beforeEach(function () {
 			this.searchPaths = options.module.searchPaths;
 		});
 
 		afterEach(function () {
 			options.module.searchPaths = this.searchPaths;
+			delete process.env.TITANIUMLIB_PLATFORM;
 		});
 
-		it('should detect sdks', () => {
+		it('should detect modules', () => {
 			options.module.searchPaths = path.join(fixturesDir, 'module');
-			const modules = getModules(true);
+			process.env.TITANIUMLIB_PLATFORM = 'test';
+			const modules = getInstalledModules(true);
 			expect(modules).to.deep.equal({
 				android: {
 					'com.test.module': {
@@ -266,8 +268,8 @@ describe('module', () => {
 			});
 		});
 
-		it('should detect system sdks', () => {
-			const modules = getModules(true);
+		it('should detect system modules', () => {
+			const modules = getInstalledModules(true);
 			expect(modules).to.be.a('object');
 		});
 	});
