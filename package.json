@@ -1,6 +1,6 @@
 {
   "name": "titaniumlib",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Titanium SDK Library",
   "main": "./dist/index",
   "author": "Axway, Inc. <npmjs@appcelerator.com>",
