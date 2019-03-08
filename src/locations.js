@@ -1,5 +1,7 @@
+import options from './options';
+
 import { expandPath } from 'appcd-path';
-import { unique } from 'appcd-util';
+import { arrayify, get, unique } from 'appcd-util';
 
 /**
  * Common search paths for Titanium SDKs.
@@ -23,17 +25,11 @@ export const locations = {
 /**
  * Returns a list of Titanium SDK installation locations.
  *
- * @param {String} [defaultPath] - A path that represents the default and is the first path in the
- * list.
  * @returns {Array.<String>}
  */
-export function getInstallPaths(defaultPath) {
-	const paths = locations[process.platform].map(p => expandPath(p));
-	if (defaultPath) {
-		if (typeof defaultPath !== 'string') {
-			throw new TypeError('Expected default install path to be a string');
-		}
-		paths.unshift(expandPath(defaultPath));
-	}
-	return unique(paths);
+export function getInstallPaths() {
+	return unique([
+		...arrayify(get(options, 'searchPaths'), true).map(p => expandPath(p)),
+		...(locations[process.env.TITANIUMLIB_PLATFORM || process.platform] || []).map(p => expandPath(p))
+	]);
 }

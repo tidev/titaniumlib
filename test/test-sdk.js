@@ -10,16 +10,10 @@ import { os } from '../dist/util';
 const fixturesDir = path.join(__dirname, 'fixtures');
 const { TitaniumSDK } = sdk;
 
-const data = {
-	branches: {
-		defaultBranch: 'master',
-		branches: [ 'master', '7_5_X' ]
-	}
-};
-
 describe('sdk', () => {
 	before(async function () {
 		this.sdkOpts = JSON.stringify(options.sdk);
+		this.searchPaths = JSON.stringify(options.searchPaths);
 		this.connections = {};
 		this.server = http.createServer((req, res) => {
 			const url = parse(req.url);
@@ -27,7 +21,10 @@ describe('sdk', () => {
 			switch (url.pathname) {
 				case '/branches.json':
 					res.writeHead(200, { 'Content-Type': 'application/octet-stream' });
-					res.end(JSON.stringify(data.branches));
+					res.end(JSON.stringify({
+						defaultBranch: 'master',
+						branches: [ 'master', '7_5_X' ]
+					}));
 					break;
 
 				case '/bad.json':
@@ -199,6 +196,7 @@ describe('sdk', () => {
 
 	after(async function () {
 		options.sdk = JSON.parse(this.sdkOpts);
+		options.searchPaths = JSON.parse(this.searchPaths);
 		await new Promise(resolve => this.server.close(resolve));
 		for (const conn of Object.values(this.connections)) {
 			conn.destroy();
@@ -206,7 +204,13 @@ describe('sdk', () => {
 	});
 
 	beforeEach(function () {
+		process.env.TITANIUMLIB_PLATFORM = 'test';
 		options.sdk = JSON.parse(this.sdkOpts);
+		options.searchPaths = JSON.parse(this.searchPaths);
+	});
+
+	afterEach(() => {
+		delete process.env.TITANIUMLIB_PLATFORM;
 	});
 
 	describe('TitaniumSDK', () => {
@@ -287,7 +291,10 @@ describe('sdk', () => {
 			options.sdk.urls.branches = 'http://localhost:1337/branches.json';
 			const branches = await sdk.getBranches();
 			expect(branches).to.be.an('object');
-			expect(branches).to.deep.equal(data.branches);
+			expect(branches).to.deep.equal({
+				branches: [ '7_5_X', 'master' ],
+				defaultBranch: 'master'
+			});
 		});
 
 		it('should error if server cannot be resolved', async function () {
@@ -542,7 +549,9 @@ describe('sdk', () => {
 
 		it('should fail if local file is not a valid zip file', async () => {
 			try {
+				const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 				await sdk.install({
+					installDir: tempDir,
 					uri: path.resolve(__dirname, 'fixtures', 'not-a-zip.zip')
 				});
 			} catch (e) {
@@ -556,7 +565,9 @@ describe('sdk', () => {
 
 		it('should fail if zip file does not contain an SDK', async () => {
 			try {
+				const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 				await sdk.install({
+					installDir: tempDir,
 					uri: path.resolve(__dirname, 'fixtures', 'not-an-sdk.zip')
 				});
 			} catch (e) {
@@ -568,14 +579,28 @@ describe('sdk', () => {
 			throw new Error('Expected error');
 		});
 
+		it('should error if Titanium directory is not defined', async () => {
+			try {
+				await sdk.install({
+					uri: path.resolve(__dirname, 'fixtures', 'mock-sdk.zip')
+				});
+			} catch (e) {
+				expect(e).to.be.instanceof(Error);
+				expect(e.message).to.equal('Unable to determine the Titanium directory');
+				return;
+			}
+
+			throw new Error('Expected error');
+		});
+
 		it('should install an SDK from local file', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: path.resolve(__dirname, 'fixtures', 'mock-sdk.zip')
 				});
 
@@ -601,7 +626,7 @@ describe('sdk', () => {
 
 				try {
 					await sdk.install({
-						defaultInstallPath: tempDir,
+						installDir: tempDir,
 						uri: path.resolve(__dirname, 'fixtures', 'mock-sdk.zip')
 					});
 				} catch (e) {
@@ -609,7 +634,7 @@ describe('sdk', () => {
 					expect(e.message).to.equal(`Titanium SDK "0.0.0.GA" already exists: ${sdkDir}`);
 
 					await sdk.install({
-						defaultInstallPath: tempDir,
+						installDir: tempDir,
 						overwrite: true,
 						uri: path.resolve(__dirname, 'fixtures', 'mock-sdk.zip')
 					});
@@ -631,10 +656,10 @@ describe('sdk', () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: path.resolve(__dirname, 'fixtures', 'mock-sdk.zip')
 				});
 
@@ -646,7 +671,7 @@ describe('sdk', () => {
 				fs.appendFileSync(manifestFile, 'foobar');
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: path.resolve(__dirname, 'fixtures', 'mock-sdk.zip')
 				});
 
@@ -659,10 +684,10 @@ describe('sdk', () => {
 		it('should download a SDK with a URL', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: 'http://127.0.0.1:1337/mock-sdk.zip'
 				});
 
@@ -693,10 +718,10 @@ describe('sdk', () => {
 		it('should error if URL 404s', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: 'http://127.0.0.1:1337/not_found'
 				});
 			} catch (e) {
@@ -713,11 +738,11 @@ describe('sdk', () => {
 		it('should download the latest release', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 				options.sdk.urls.releases = 'http://127.0.0.1:1337/releases.json';
 
 				await sdk.install({
-					defaultInstallPath: tempDir
+					installDir: tempDir
 				});
 
 				const sdkDir = path.join(tempDir, 'mobilesdk', os, '0.0.0.GA');
@@ -747,11 +772,11 @@ describe('sdk', () => {
 		it('should download a specific release version', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 				options.sdk.urls.releases = 'http://127.0.0.1:1337/releases.json';
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: '7.5.1'
 				});
 
@@ -782,11 +807,11 @@ describe('sdk', () => {
 		it('should download a specific release version by uri', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 				options.sdk.urls.releases = 'http://127.0.0.1:1337/releases.json';
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: '7.5.1.GA'
 				});
 
@@ -817,14 +842,14 @@ describe('sdk', () => {
 		it('should download a build by branch and hash', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 				options.sdk.urls.releases = 'http://127.0.0.1:1337/releases.json';
 				options.sdk.urls.branches = 'http://127.0.0.1:1337/branches.json';
 				options.sdk.urls.builds = 'http://localhost:1337/<BRANCH>/builds.json';
 				options.sdk.urls.build = 'http://localhost:1337/<BRANCH>/<FILENAME>';
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: '7_5_X:2b4c8675ce7eb48dd209c915a95bbe4f6da9c261'
 				});
 
@@ -855,13 +880,13 @@ describe('sdk', () => {
 		it('should error if branch is invalid', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 				options.sdk.urls.releases = 'http://127.0.0.1:1337/releases.json';
 				options.sdk.urls.builds = 'http://localhost:1337/<BRANCH>/builds.json';
 				options.sdk.urls.build = 'http://localhost:1337/<BRANCH>/<FILENAME>';
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: 'foo:bar'
 				});
 			} catch (e) {
@@ -878,14 +903,14 @@ describe('sdk', () => {
 		it('should download a build by branch', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 				options.sdk.urls.releases = 'http://127.0.0.1:1337/releases.json';
 				options.sdk.urls.branches = 'http://127.0.0.1:1337/branches.json';
 				options.sdk.urls.builds = 'http://localhost:1337/<BRANCH>/builds.json';
 				options.sdk.urls.build = 'http://localhost:1337/<BRANCH>/<FILENAME>';
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: '7_5_X'
 				});
 
@@ -916,14 +941,14 @@ describe('sdk', () => {
 		it('should download a build by hash', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 				options.sdk.urls.releases = 'http://127.0.0.1:1337/releases.json';
 				options.sdk.urls.branches = 'http://127.0.0.1:1337/branches.json';
 				options.sdk.urls.builds = 'http://localhost:1337/<BRANCH>/builds.json';
 				options.sdk.urls.build = 'http://localhost:1337/<BRANCH>/<FILENAME>';
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: '2b4c8675ce7eb48dd209c915a95bbe4f6da9c261'
 				});
 
@@ -954,14 +979,14 @@ describe('sdk', () => {
 		it('should error if URI is not resolvable', async () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 				options.sdk.urls.releases = 'http://127.0.0.1:1337/releases.json';
 				options.sdk.urls.branches = 'http://127.0.0.1:1337/branches.json';
 				options.sdk.urls.builds = 'http://localhost:1337/<BRANCH>/builds.json';
 				options.sdk.urls.build = 'http://localhost:1337/<BRANCH>/<FILENAME>';
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: 'foobar'
 				});
 			} catch (e) {
@@ -1005,10 +1030,10 @@ describe('sdk', () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: path.resolve(__dirname, 'fixtures', 'mock-sdk.zip')
 				});
 
@@ -1029,10 +1054,10 @@ describe('sdk', () => {
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 
 			try {
-				options.sdk.searchPaths = tempDir;
+				options.searchPaths = tempDir;
 
 				await sdk.install({
-					defaultInstallPath: tempDir,
+					installDir: tempDir,
 					uri: path.resolve(__dirname, 'fixtures', 'mock-sdk.zip')
 				});
 

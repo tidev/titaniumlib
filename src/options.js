@@ -3,13 +3,16 @@
  * @type {Object}
  */
 const options = {
+	searchPaths: [],
 	network: {
-		ca: null,
-		proxy: null,
-		strictSSL: null,
+		agentOptions: null,
 		caFile: null,
 		certFile: null,
-		keyFile: null
+		httpProxy: null,
+		httpsProxy: null,
+		keyFile: null,
+		passphrase: null,
+		strictSSL: true
 	},
 	sdk: {
 		searchPaths: [],

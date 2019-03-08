@@ -26,6 +26,50 @@ export const architecture = arch();
 export const os = process.platform === 'darwin' ? 'osx' : process.platform;
 
 /**
+ * Mixes the network options into the request params.
+ *
+ * @param {Object} params - Various request parameters.
+ * @returns {Object}
+ */
+export function buildRequestParams(params) {
+	const { network } = options;
+
+	if (!params.agentOptions && network.agentOptions) {
+		Object.assign(params.agentOptions, network.agentOptions);
+	}
+
+	if (!params.ca && network.caFile && isFile(network.caFile)) {
+		params.ca = fs.readFileSync(network.caFile);
+	}
+
+	if (!params.cert && network.certFile && isFile(network.certFile)) {
+		params.cert = fs.readFileSync(network.certFile);
+	}
+
+	if (!params.proxy && params.url && (network.httpsProxy || network.httpProxy)) {
+		if (/^https/.test(params.url)) {
+			params.proxy = network.httpsProxy || network.httpProxy;
+		} else {
+			params.proxy = network.httpProxy || network.httpsProxy;
+		}
+	}
+
+	if (!params.key && network.keyFile && isFile(network.keyFile)) {
+		params.key = fs.readFileSync(network.keyFile);
+	}
+
+	if (!params.passphrase && network.passphrase) {
+		params.passphrase = network.passphrase;
+	}
+
+	if (params.strictSSL === undefined && network.strictSSL !== undefined) {
+		params.strictSSL = network.strictSSL;
+	}
+
+	return params;
+}
+
+/**
  * Extracts a zip file to the specified destination.
  *
  * @param {Object} params - Various parameters.
@@ -108,9 +152,7 @@ export async function extractZip(params) {
 export function fetchJSON(url) {
 	return new Promise((resolve, reject) => {
 		log(`Fetching ${highlight(url)}`);
-		const params = Object.assign({}, options.network, { method: 'GET', url });
-
-		request(params, (err, response, body) => {
+		request(buildRequestParams({ method: 'GET', url }), (err, response, body) => {
 			if (err) {
 				return reject(new Error(err));
 			}
