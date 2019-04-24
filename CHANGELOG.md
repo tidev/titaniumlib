@@ -1,3 +1,11 @@
+# 1.3.1 (Apr 24, 2019)
+
+ * refactor: Added `name` to SDK object returned from `getReleases()`.
+
+# 1.3.0 (Apr 23, 2019)
+
+ * fix: Added missing source-map-support dependency.
+
 # 1.2.0 (Mar 29, 2019)
 
  * chore: Updated dependencies.
