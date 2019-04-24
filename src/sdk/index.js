@@ -133,6 +133,7 @@ export async function getReleases(noLatest) {
 
 		if (os !== 'linux' || (is64 && is64build) || (!is64 && !is64build)) {
 			results[ver] = {
+				name: ver,
 				version: ver.replace(/\.GA.*$/, ''),
 				url
 			};

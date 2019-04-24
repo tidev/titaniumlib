@@ -439,10 +439,12 @@ describe('sdk', () => {
 			expect(releases).to.be.an('object');
 			expect(releases).to.deep.equal({
 				'7.5.1.GA': {
+					name: '7.5.1.GA',
 					url: 'http://127.0.0.1:1337/mock-sdk.zip',
 					version: '7.5.1'
 				},
 				latest: {
+					name: '7.5.1.GA',
 					url: 'http://127.0.0.1:1337/mock-sdk.zip',
 					version: '7.5.1'
 				}
@@ -456,6 +458,7 @@ describe('sdk', () => {
 			expect(releases).to.be.an('object');
 			expect(releases).to.deep.equal({
 				'7.5.1.GA': {
+					name: '7.5.1.GA',
 					url: 'http://127.0.0.1:1337/mock-sdk.zip',
 					version: '7.5.1'
 				}
