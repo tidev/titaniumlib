@@ -425,11 +425,11 @@ describe('sdk', () => {
 
 			expect(releases).to.have.property('latest');
 			expect(releases.latest).to.be.an('object');
-			expect(releases.latest).to.have.all.keys('version', 'url');
+			expect(releases.latest).to.have.all.keys('version', 'url', 'name');
 
 			const release = releases[Object.keys(releases)[0]];
 			expect(release).to.be.an('object');
-			expect(release).to.have.all.keys('version', 'url');
+			expect(release).to.have.all.keys('version', 'url', 'name');
 		});
 
 		it('should get a list of releases (local)', async () => {
