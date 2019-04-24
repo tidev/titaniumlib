@@ -279,7 +279,10 @@ describe('sdk', () => {
 	});
 
 	describe('getBranches()', () => {
-		it('should get the list of branches (production)', async () => {
+		it('should get the list of branches (production)', async function () {
+			this.slow(9000);
+			this.timeout(10000);
+
 			const branches = await sdk.getBranches();
 			expect(branches).to.be.an('object');
 			expect(branches).to.have.all.keys('defaultBranch', 'branches');
@@ -298,8 +301,8 @@ describe('sdk', () => {
 		});
 
 		it('should error if server cannot be resolved', async function () {
-			this.timeout(5000);
-			this.slow(2000);
+			this.slow(9000);
+			this.timeout(10000);
 
 			options.sdk.urls.branches = 'http://does_not_exist';
 
@@ -419,7 +422,10 @@ describe('sdk', () => {
 	});
 
 	describe('getReleases()', () => {
-		it('should get a list of releases (production)', async () => {
+		it('should get a list of releases (production)', async function () {
+			this.slow(9000);
+			this.timeout(10000);
+
 			const releases = await sdk.getReleases();
 			expect(releases).to.be.an('object');
 
