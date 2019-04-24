@@ -310,7 +310,7 @@ describe('sdk', () => {
 				await sdk.getBranches();
 			} catch (e) {
 				expect(e).to.be.instanceOf(Error);
-				expect(e.message).to.match(/ENOTFOUND/);
+				expect(e.message).to.match(/ENOTFOUND|EAI_AGAIN/);
 				return;
 			}
 
