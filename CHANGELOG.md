@@ -1,3 +1,8 @@
+# 1.3.2
+
+ * fix: Updated `releases.json` URL to use the virtual-hosted style URL instead of the path-style
+   URL (https://forums.aws.amazon.com/ann.jspa?annID=6776).
+
 # 1.3.1 (Apr 24, 2019)
 
  * refactor: Added `name` to SDK object returned from `getReleases()`.
