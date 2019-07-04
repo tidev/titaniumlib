@@ -154,7 +154,7 @@ export function fetchJSON(url) {
 		log(`Fetching ${highlight(url)}`);
 		request(buildRequestParams({ method: 'GET', url }), (err, response, body) => {
 			if (err) {
-				return reject(new Error(err));
+				return reject(err);
 			}
 
 			// istanbul ignore if
