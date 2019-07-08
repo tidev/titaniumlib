@@ -1,7 +1,9 @@
-# 1.3.2
+# 1.4.0 (Jul 8, 2019)
 
  * fix: Updated `releases.json` URL to use the virtual-hosted style URL instead of the path-style
    URL (https://forums.aws.amazon.com/ann.jspa?annID=6776).
+ * fix(util): Removed creation of error instance in catch causing original error stack to be lost.
+ * chore: Updated dependencies.
 
 # 1.3.1 (Apr 24, 2019)
 
