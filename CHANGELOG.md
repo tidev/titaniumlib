@@ -1,4 +1,4 @@
-# 1.4.0
+# 1.4.0 (Jul 8, 2019)
 
  * fix: Updated `releases.json` URL to use the virtual-hosted style URL instead of the path-style
    URL (https://forums.aws.amazon.com/ann.jspa?annID=6776).
