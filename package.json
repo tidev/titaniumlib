@@ -23,20 +23,20 @@
     "test": "gulp test"
   },
   "dependencies": {
-    "appcd-fs": "^1.1.6",
-    "appcd-path": "^1.1.5",
-    "appcd-util": "^1.1.6",
-    "fs-extra": "^7.0.1",
-    "pluralize": "^7.0.0",
+    "appcd-fs": "^1.1.7",
+    "appcd-path": "^1.1.6",
+    "appcd-util": "^1.1.7",
+    "fs-extra": "^8.1.0",
+    "pluralize": "^8.0.0",
     "request": "^2.88.0",
-    "semver": "^6.0.0",
+    "semver": "^6.2.0",
     "snooplogg": "^2.0.1",
     "source-map-support": "^0.5.12",
     "tmp": "^0.1.0",
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
-    "appcd-gulp": "^2.1.0"
+    "appcd-gulp": "^2.1.1"
   },
   "homepage": "https://github.com/appcelerator/titaniumlib",
   "bugs": "https://github.com/appcelerator/titaniumlib/issues",
