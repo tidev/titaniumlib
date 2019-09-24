@@ -129,7 +129,9 @@ export async function extractZip(params) {
 									return reject(err);
 								}
 
-								const writeStream = fs.createWriteStream(fullPath);
+								const writeStream = fs.createWriteStream(fullPath,  {
+									mode: entry.externalFileAttributes >>> 16
+								});
 								writeStream.on('close', () => zipfile.readEntry());
 								writeStream.on('error', reject);
 								readStream.pipe(writeStream);
