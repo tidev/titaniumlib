@@ -1008,6 +1008,25 @@ describe('sdk', () => {
 
 			throw new Error('Expected error');
 		});
+
+		(os === 'win32' ? it.skip : it)('should preserve permissions on files', async () => {
+			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
+			try {
+				options.searchPaths = tempDir;
+
+				await sdk.install({
+					installDir: tempDir,
+					uri: 'http://127.0.0.1:1337/mock-sdk.zip'
+				});
+
+				const executableLocation = path.join(tempDir, 'mobilesdk', os, '0.0.0.GA', 'executable');
+				expect(() => {
+					fs.accessSync(executableLocation, fs.constants.X_OK);
+				}).to.not.throw();
+			} finally {
+				await fs.remove(tempDir);
+			}
+		});
 	});
 
 	describe('uninstall()', () => {
