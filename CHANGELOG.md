@@ -1,3 +1,7 @@
+# v2.0.1 (Sep 26, 2019)
+
+ * fix(sdk): Maintain file permissions on SDK extraction.
+
 # v2.0.0 (Aug 14, 2019)
 
  * BREAKING CHANGE: Bumped minimum required Node.js version from v8.0.0 to v8.12.0.
