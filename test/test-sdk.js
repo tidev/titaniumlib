@@ -1,9 +1,11 @@
+/* eslint-disable node/prefer-global/url */
+
 import fs from 'fs-extra';
 import http from 'http';
 import path from 'path';
 import tmp from 'tmp';
 
-import { parse } from 'url';
+import { URL } from 'url';
 import { sdk, options } from '../dist/index';
 import { os } from '../dist/util';
 
@@ -16,7 +18,7 @@ describe('sdk', () => {
 		this.searchPaths = JSON.stringify(options.searchPaths);
 		this.connections = {};
 		this.server = http.createServer((req, res) => {
-			const url = parse(req.url);
+			const url = new URL(req.url, 'http://127.0.0.1/');
 
 			switch (url.pathname) {
 				case '/branches.json':
@@ -362,8 +364,8 @@ describe('sdk', () => {
 
 	describe('getBuilds()', () => {
 		it('should get a list of master branch builds (production)', async function () {
-			this.timeout(5000);
-			this.slow(4000);
+			this.timeout(20000);
+			this.slow(19000);
 
 			let builds = await sdk.getBuilds();
 			expect(builds).to.be.an('object');
@@ -399,8 +401,8 @@ describe('sdk', () => {
 		});
 
 		it('should get a list of 8_0_X branch builds', async function () {
-			this.timeout(5000);
-			this.slow(4000);
+			this.timeout(10000);
+			this.slow(9000);
 
 			const builds = await sdk.getBuilds('8_0_X');
 			expect(builds).to.be.an('object');
@@ -886,7 +888,10 @@ describe('sdk', () => {
 			}
 		});
 
-		it('should error if branch is invalid', async () => {
+		it('should error if branch is invalid', async function () {
+			this.slow(9000);
+			this.timeout(10000);
+
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
 				options.searchPaths = tempDir;

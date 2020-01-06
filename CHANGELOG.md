@@ -1,3 +1,7 @@
+# v2.0.2
+
+ * chore: Updated dependencies.
+
 # v2.0.1 (Sep 26, 2019)
 
  * fix(sdk): Maintain file permissions on SDK extraction.
