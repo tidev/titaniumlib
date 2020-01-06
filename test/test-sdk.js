@@ -1,9 +1,11 @@
+/* eslint-disable node/prefer-global/url */
+
 import fs from 'fs-extra';
 import http from 'http';
 import path from 'path';
 import tmp from 'tmp';
 
-import { parse } from 'url';
+import { URL } from 'url';
 import { sdk, options } from '../dist/index';
 import { os } from '../dist/util';
 
@@ -16,7 +18,7 @@ describe('sdk', () => {
 		this.searchPaths = JSON.stringify(options.searchPaths);
 		this.connections = {};
 		this.server = http.createServer((req, res) => {
-			const url = parse(req.url);
+			const url = new URL(req.url, 'http://127.0.0.1/');
 
 			switch (url.pathname) {
 				case '/branches.json':
