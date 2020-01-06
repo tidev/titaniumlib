@@ -364,8 +364,8 @@ describe('sdk', () => {
 
 	describe('getBuilds()', () => {
 		it('should get a list of master branch builds (production)', async function () {
-			this.timeout(5000);
-			this.slow(4000);
+			this.timeout(10000);
+			this.slow(9000);
 
 			let builds = await sdk.getBuilds();
 			expect(builds).to.be.an('object');
@@ -401,8 +401,8 @@ describe('sdk', () => {
 		});
 
 		it('should get a list of 8_0_X branch builds', async function () {
-			this.timeout(5000);
-			this.slow(4000);
+			this.timeout(10000);
+			this.slow(9000);
 
 			const builds = await sdk.getBuilds('8_0_X');
 			expect(builds).to.be.an('object');
@@ -888,7 +888,10 @@ describe('sdk', () => {
 			}
 		});
 
-		it('should error if branch is invalid', async () => {
+		it('should error if branch is invalid', async function () {
+			this.slow(9000);
+			this.timeout(10000);
+
 			const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 			try {
 				options.searchPaths = tempDir;
