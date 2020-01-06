@@ -364,8 +364,8 @@ describe('sdk', () => {
 
 	describe('getBuilds()', () => {
 		it('should get a list of master branch builds (production)', async function () {
-			this.timeout(10000);
-			this.slow(9000);
+			this.timeout(20000);
+			this.slow(19000);
 
 			let builds = await sdk.getBuilds();
 			expect(builds).to.be.an('object');
