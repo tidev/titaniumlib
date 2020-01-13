@@ -532,7 +532,9 @@ describe('sdk', () => {
 
 		it('should fail if local file does not exist', async () => {
 			try {
+				const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 				await sdk.install({
+					installDir: tempDir,
 					uri: `file://${path.resolve(__dirname, 'does_not_exist')}`
 				});
 			} catch (e) {
@@ -546,7 +548,9 @@ describe('sdk', () => {
 
 		it('should fail if local file is not a zip file extension', async () => {
 			try {
+				const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-test-' });
 				await sdk.install({
+					installDir: tempDir,
 					uri: path.resolve(__dirname, 'fixtures', 'empty.txt')
 				});
 			} catch (e) {

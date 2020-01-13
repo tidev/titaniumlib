@@ -75,6 +75,7 @@ export function buildRequestParams(params) {
  * @param {Object} params - Various parameters.
  * @param {String} params.dest - The destination to extract the file.
  * @param {String} params.file - The path to the zip file to extract.
+ * @param {Function} [params.onEntry] - A callback to fire per entry.
  * @returns {Promise}
  */
 export async function extractZip(params) {
@@ -108,11 +109,20 @@ export async function extractZip(params) {
 				return reject(new Error(`Invalid zip file: ${err.message || err}`));
 			}
 
+			let idx = 0;
+			const total = zipfile.entryCount;
+			const abort = err => {
+				zipfile.removeListener('end', resolve);
+				zipfile.close();
+				reject(err);
+			};
+
 			zipfile
 				.on('entry', entry => {
+					idx++;
 					if (typeof params.onEntry === 'function') {
 						try {
-							params.onEntry(entry.fileName);
+							params.onEntry(entry.fileName, idx, total);
 						} catch (e) {
 							return reject(e);
 						}
@@ -126,20 +136,20 @@ export async function extractZip(params) {
 						fs.mkdirp(path.dirname(fullPath), () => {
 							zipfile.openReadStream(entry, (err, readStream) => {
 								if (err) {
-									return reject(err);
+									return abort(err);
 								}
 
 								const writeStream = fs.createWriteStream(fullPath,  {
 									mode: entry.externalFileAttributes >>> 16
 								});
 								writeStream.on('close', () => zipfile.readEntry());
-								writeStream.on('error', reject);
+								writeStream.on('error', abort);
 								readStream.pipe(writeStream);
 							});
 						});
 					}
 				})
-				.on('close', resolve)
+				.once('end', resolve)
 				.readEntry();
 		});
 	});

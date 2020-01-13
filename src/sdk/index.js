@@ -163,6 +163,47 @@ export function getPaths() {
 }
 
 /**
+ * Tracks install tasks and their progress.
+ */
+class TaskTracker {
+	constructor(callback, tasks) {
+		if (callback && typeof callback !== 'function') {
+			throw new TypeError('Expected progress callback to be a function');
+		}
+		this.callback = callback || (() => {});
+		this.tasks = tasks;
+		this.currentTask = 1;
+		this.currentProgress = 0;
+	}
+
+	startTask() {
+		if (!this.sentTasks) {
+			this.sentTasks = true;
+			this.callback({ type: 'tasks', tasks: this.tasks });
+		}
+
+		this.callback({ task: this.currentTask, type: 'task-start' });
+	}
+
+	progress(value, force) {
+		const prev = this.currentProgress;
+		if (force || value - prev > 0.01) {
+			this.currentProgress = value;
+			this.callback({ task: this.currentTask, type: 'task-progress', progress: value });
+		}
+	}
+
+	endTask() {
+		if (this.currentProgress < 1) {
+			this.progress(1, true);
+		}
+		this.callback({ task: this.currentTask, type: 'task-end' });
+		this.currentTask++;
+		this.currentProgress = 0;
+	}
+}
+
+/**
  * Install a Titanium SDK from either a URI or version. A URI may be either a local file, a URL, an
  * SDK version, a CI branch, or a CI branch and build hash.
  *
@@ -173,6 +214,7 @@ export function getPaths() {
  * the list of Titanium install locations.
  * @param {Boolean} [params.keep=false] - When `true` and `uri` is a URL, release, or build, and
  * `downloadDir` is specified, then the downloaded SDK `.zip` file is not deleted after install.
+ * @param {Function} [params.onProgress] - A callback to fire when install progress is updated.
  * @param {Boolean} [params.overwrite=false] - When `true`, overwrites an existing Titanium SDK
  * installation, otherwise an error is thrown.
  * @param {String} [params.uri] - A URI to a local file or remote URL to download.
@@ -183,8 +225,19 @@ export async function install(params = {}) {
 		throw new TypeError('Expected params to be an object');
 	}
 
+	const tracker = new TaskTracker(params.onProgress, [
+		'Extracting SDK',
+		'Installing SDK files',
+		'Installing module files'
+	]);
+
 	if (params.uri !== undefined && typeof params.uri !== 'string') {
 		throw new TypeError('Expected URI to be a string');
+	}
+
+	const titaniumDir = params.installDir ? expandPath(params.installDir) : getInstallPaths()[0];
+	if (!titaniumDir) {
+		throw new Error('Unable to determine the Titanium directory');
 	}
 
 	let uri            = (params.uri || 'latest').trim();
@@ -205,14 +258,20 @@ export async function install(params = {}) {
 		file = expandPath(file);
 
 		if (!fs.existsSync(file)) {
-			throw new Error('Specified file URI does not exist');
+			const err = new Error('Specified file URI does not exist');
+			err.code = 'ENOTFOUND';
+			throw err;
 		}
 
 		if (!/\.zip$/.test(file)) {
-			throw new Error('Specified file URI is not a zip file');
+			const err = new Error('Specified file URI is not a zip file');
+			err.code = 'ENOTFOUND';
+			throw err;
 		}
 	} else {
 		// we are downloading an sdk
+
+		tracker.tasks.unshift('Downloading SDK');
 
 		if (uriMatch && uriMatch[1]) {
 			// we have a http url
@@ -220,9 +279,13 @@ export async function install(params = {}) {
 			log(`URI is a URL: ${highlight(url)}`);
 
 		} else {
+			let ver = uri;
+
+			tracker.tasks.unshift(`Identifying release "${ver}"`);
+			tracker.startTask();
+
 			// we have a version that needs to be resolved to a url
 			const releases = await getReleases();
-			let ver = uri;
 
 			if (ver && (releases[ver] || releases[`${ver}.GA`])) {
 				// we have a ga release
@@ -262,6 +325,9 @@ export async function install(params = {}) {
 					log(`Scanning ${pluralize('branch', branches.length, true)} for ${ver}`);
 				}
 
+				let counter = 1;
+				const total = branches.length;
+
 				url = await branches.reduce((promise, branch) => {
 					return promise.then(async url => {
 						if (url) {
@@ -274,6 +340,8 @@ export async function install(params = {}) {
 							return r === 0 ? builds[b].ts.localeCompare(builds[a].ts) : r;
 						};
 
+						tracker.progress(counter++ / total);
+
 						// eslint-disable-next-line promise/always-return
 						for (const name of Object.keys(builds).sort(sortBuilds)) {
 							if (ver === 'latest' || name === ver || builds[name].githash === ver) {
@@ -283,14 +351,20 @@ export async function install(params = {}) {
 					});
 				}, Promise.resolve());
 			}
+
+			tracker.endTask();
 		}
 
 		if (!url) {
 			// note: yes, we want `params.uri` and not `uri`
-			throw new Error(`Unable to find any Titanium SDK releases or CI builds that match "${params.uri}"`);
+			const err = new Error(`Unable to find any Titanium SDK releases or CI builds that match "${params.uri}"`);
+			err.code = 'ENOTFOUND';
+			throw err;
 		}
 
 		// step 1.5: download the file
+
+		tracker.startTask();
 
 		let { downloadDir } = params;
 
@@ -314,14 +388,24 @@ export async function install(params = {}) {
 			req.pipe(out);
 
 			req.on('response', response => {
-				const { statusCode } = response;
+				const { headers, statusCode } = response;
 
 				if (statusCode >= 400) {
 					fs.removeSync(downloadedFile);
 					return reject(new Error(`${statusCode} ${STATUS_CODES[statusCode]}`));
 				}
 
+				let counter = 0;
+				const total = parseInt(headers['content-length']);
+
+				response.on('data', buffer => {
+					counter += buffer.length;
+					tracker.progress(counter / total);
+				});
+
 				out.on('close', () => {
+					tracker.endTask();
+
 					let file = downloadedFile;
 					const m = url.match(/.*\/(.+\.zip)$/);
 					if (m) {
@@ -342,21 +426,20 @@ export async function install(params = {}) {
 	// eslint-disable-next-line security/detect-non-literal-regexp
 	const sdkDestRegExp = new RegExp(`^mobilesdk[/\\\\]${os}[/\\\\]([^/\\\\]+)`);
 	const tempDir = tmp.tmpNameSync({ prefix: 'titaniumlib-' });
-	const titaniumDir = params.installDir ? expandPath(params.installDir) : getInstallPaths()[0];
 	let name;
 	let dest = null;
 
-	if (!titaniumDir) {
-		throw new Error('Unable to determine the Titanium directory');
-	}
-
 	log(`Using Titanium directory: ${highlight(titaniumDir)}`);
+
+	tracker.startTask();
 
 	try {
 		await extractZip({
 			dest: tempDir,
 			file,
-			onEntry(filename) {
+			onEntry(filename, idx, total) {
+				tracker.progress(idx / total);
+
 				// do a quick check to make sure the destination doesn't exist
 				const m = !name && filename.match(sdkDestRegExp);
 				if (m) {
@@ -369,6 +452,8 @@ export async function install(params = {}) {
 			}
 		});
 
+		tracker.endTask();
+
 		if (!name) {
 			throw new Error('Zip file does not appear to contain a Titanium SDK');
 		}
@@ -377,10 +462,20 @@ export async function install(params = {}) {
 
 		let src = path.join(tempDir, 'mobilesdk', os, name);
 		dest = path.join(titaniumDir, 'mobilesdk', os, name);
+
+		tracker.startTask();
+		tracker.progress(0.2); // give the progress bar a little fuel
+
 		log(`Moving SDK files: ${highlight(src)} => ${highlight(dest)}`);
 		await fs.move(src, dest, { overwrite: true });
 
+		tracker.endTask();
+
 		// install the modules
+
+		tracker.startTask();
+
+		const modules = [];
 		src = path.join(tempDir, 'modules');
 		if (isDir(src)) {
 			const modulesDest = path.join(titaniumDir, 'modules');
@@ -404,18 +499,30 @@ export async function install(params = {}) {
 						}
 
 						const destDir = path.join(modulesDest, platform, moduleName, ver);
-						log(`Moving module files ${highlight(`${platform}/${moduleName}@${ver}`)}: ${highlight(srcVersionDir)} => ${highlight(destDir)}`);
+						const name = `${platform}/${moduleName}@${ver}`;
 
 						if (!params.overwrite && isDir(destDir)) {
 							log(`Module ${highlight(`${platform}/${moduleName}@${ver}`)} already exists, skipping`);
 							continue;
 						}
 
-						await fs.move(srcVersionDir, destDir, { overwrite: true });
+						modules.push({ name, src: srcVersionDir, dest: destDir });
 					}
 				}
 			}
 		}
+
+		const numModules = modules.length;
+		if (numModules) {
+			let counter = 1;
+			for (const { name, src, dest } of modules) {
+				log(`Moving module files ${highlight(name)}: ${highlight(src)} => ${highlight(dest)}`);
+				await fs.move(src, dest, { overwrite: true });
+				tracker.progress(counter++ / numModules);
+			}
+		}
+
+		tracker.endTask();
 	} finally {
 		log(`Removing ${highlight(tempDir)}`);
 		await fs.remove(tempDir);
