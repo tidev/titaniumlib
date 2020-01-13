@@ -1,5 +1,8 @@
-# v2.0.2
+# v2.1.0
 
+ * feat: Added `onProgress()` callback to SDK's `install()`.
+ * feat: Added current file index and total entries arguments to `extractZip()`'s `onEntry`
+   callback.
  * chore: Updated dependencies.
 
 # v2.0.1 (Sep 26, 2019)
