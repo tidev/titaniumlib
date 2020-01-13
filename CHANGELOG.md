@@ -1,4 +1,4 @@
-# v2.1.0
+# v2.1.0 (Jan 13, 2020)
 
  * feat: Added `onProgress()` callback to SDK's `install()`.
  * feat: Added current file index and total entries arguments to `extractZip()`'s `onEntry`
