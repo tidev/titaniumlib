@@ -218,7 +218,7 @@ class TaskTracker {
  * @param {Boolean} [params.overwrite=false] - When `true`, overwrites an existing Titanium SDK
  * installation, otherwise an error is thrown.
  * @param {String} [params.uri] - A URI to a local file or remote URL to download.
- * @returns {Promise}
+ * @returns {Promise<TitaniumSDK>}
  */
 export async function install(params = {}) {
 	if (!params || typeof params !== 'object') {
@@ -533,7 +533,7 @@ export async function install(params = {}) {
 		await fs.remove(downloadedFile);
 	}
 
-	return dest;
+	return new TitaniumSDK(dest);
 }
 
 /**

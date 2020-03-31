@@ -1,3 +1,9 @@
+# v3.0.0 (Jan 14, 2020)
+
+ * BREAKING CHANGE: Updated `install()` to return a `TitaniumSDK` object for the newly installed
+   Titanium SDK.
+ * chore: Updated dependencies.
+
 # v2.1.0 (Jan 13, 2020)
 
  * feat: Added `onProgress()` callback to SDK's `install()`.
