@@ -268,7 +268,8 @@ describe('module', () => {
 			});
 		});
 
-		it('should detect system modules', () => {
+		it('should detect system modules', function () {
+			this.timeout(6000);
 			const modules = getInstalledModules(true);
 			expect(modules).to.be.a('object');
 		});
