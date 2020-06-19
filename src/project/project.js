@@ -46,6 +46,14 @@ export default class Project {
 		this.templates = opts.templates || templates;
 	}
 
+	async build() {
+		return `Building ${this.path}!`;
+	}
+
+	async clean() {
+		return `Cleaning ${this.path}!`;
+	}
+
 	/**
 	 * Creates a new Titanium project.
 	 *
@@ -60,8 +68,6 @@ export default class Project {
 		if (!opts || typeof opts !== 'object') {
 			throw new TypeError('Expected options to be an object');
 		}
-
-		log(opts);
 
 		if (!opts.name || typeof opts.name !== 'string') {
 			throw INVALID_ARGUMENT('Expected project name', 'EPROJNAME', {
@@ -155,5 +161,9 @@ export default class Project {
 		// });
 
 		return 'success!';
+	}
+
+	async run() {
+		return `Building ${this.path} and running!`;
 	}
 }
