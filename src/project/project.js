@@ -68,7 +68,7 @@ export default class Project {
 				message: 'What is the name of your project?',
 				name: 'name',
 				required: true,
-				type: 'text',
+				type: 'input',
 				validateMessage: 'Every project needs a good name',
 			});
 		}
@@ -90,9 +90,8 @@ export default class Project {
 				}
 				for (const pkg of packages) {
 					choices.push({
-						name: pkg.name,
 						hint: ' '.repeat(maxlen - pkg.name.length) + pkg.desc,
-						required: true,
+						name: pkg.name,
 						type,
 						value: pkg.path
 					});
@@ -116,9 +115,10 @@ export default class Project {
 			);
 
 			throw INVALID_ARGUMENT('Expected template', 'EPROJTEMPLATE', {
+				choices,
 				message: 'What kind of project would you like to create?',
 				name: 'template',
-				choices,
+				required: true,
 				type: 'select'
 			});
 		}
