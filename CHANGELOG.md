@@ -1,3 +1,11 @@
+# v4.0.0
+
+ * BREAKING CHANGE: Dropped support for Node.js 10.12 and older.
+ * feat(project): Added implementation for managing, creating, building and cleaning projects.
+ * feat(templates): Bundled default project templates as dependencies and list them via a new
+   templates API.
+ * chore: Updated dependencies.
+
 # v3.0.0 (Jan 14, 2020)
 
  * BREAKING CHANGE: Updated `install()` to return a `TitaniumSDK` object for the newly installed
