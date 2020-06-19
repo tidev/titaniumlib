@@ -165,6 +165,7 @@ export default class Project {
 
 	async tiapp() {
 		// TODO: return the tiapp as JSON
+		return '{}';
 	}
 
 	async run() {
