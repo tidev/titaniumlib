@@ -163,6 +163,10 @@ export default class Project {
 		return 'success!';
 	}
 
+	async tiapp() {
+		// TODO: return the tiapp as JSON
+	}
+
 	async run() {
 		return `Building ${this.path} and running!`;
 	}
