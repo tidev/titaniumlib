@@ -38,11 +38,9 @@ export default class Project {
 			throw new TypeError('Expected project options to be an object');
 		}
 
-		if (opts.path && typeof opts.path !== 'string') {
-			//
+		if (opts.path !== undefined && typeof opts.path !== 'string') {
+			throw new TypeError('Expected project path to be a non-empty string');
 		}
-
-		log(opts);
 
 		this.path = opts.path;
 		this.templates = opts.templates || templates;
