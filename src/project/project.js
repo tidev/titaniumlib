@@ -46,14 +46,6 @@ export default class Project {
 		this.templates = opts.templates || templates;
 	}
 
-	async build() {
-		return `Building ${this.path}!`;
-	}
-
-	async clean() {
-		return `Cleaning ${this.path}!`;
-	}
-
 	/**
 	 * Creates a new Titanium project.
 	 *
@@ -144,7 +136,9 @@ export default class Project {
 			opts.workspaceDir = path.resolve(opts.cwd || process.cwd(), opts.workspaceDir);
 		}
 
-		log(`Creating project in directory: ${path.resolve(opts.workspaceDir)}`);
+		this.path = path.resolve(opts.workspaceDir, opts.name);
+
+		log(`Creating project in directory: ${this.path}`);
 
 		// create from template
 		// const engine = new TemplateEngine();
@@ -166,9 +160,5 @@ export default class Project {
 	async tiapp() {
 		// TODO: return the tiapp as JSON
 		return '{}';
-	}
-
-	async run() {
-		return `Building ${this.path} and running!`;
 	}
 }

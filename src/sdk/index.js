@@ -176,13 +176,13 @@ class TaskTracker {
 		this.currentProgress = 0;
 	}
 
-	startTask() {
+	startTask(hasProgress = true) {
 		if (!this.sentTasks) {
 			this.sentTasks = true;
 			this.callback({ type: 'tasks', tasks: this.tasks });
 		}
 
-		this.callback({ task: this.currentTask, type: 'task-start' });
+		this.callback({ hasProgress, task: this.currentTask, type: 'task-start' });
 	}
 
 	progress(value, force) {
@@ -282,7 +282,7 @@ export async function install(params = {}) {
 			let ver = uri;
 
 			tracker.tasks.unshift(`Identifying release "${ver}"`);
-			tracker.startTask();
+			tracker.startTask(false);
 
 			// we have a version that needs to be resolved to a url
 			const releases = await getReleases();
@@ -463,8 +463,7 @@ export async function install(params = {}) {
 		let src = path.join(tempDir, 'mobilesdk', os, name);
 		dest = path.join(titaniumDir, 'mobilesdk', os, name);
 
-		tracker.startTask();
-		tracker.progress(0.2); // give the progress bar a little fuel
+		tracker.startTask(false);
 
 		log(`Moving SDK files: ${highlight(src)} => ${highlight(dest)}`);
 		await fs.move(src, dest, { overwrite: true });
