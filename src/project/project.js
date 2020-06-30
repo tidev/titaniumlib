@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import path from 'path';
 import snooplogg from 'snooplogg';
-import TemplateEngine from 'template-kit';
-import TiappXML from './tiappxml';
-
+// import TemplateEngine from 'template-kit';
+import Tiapp from './tiapp';
+import { expandPath } from 'appcd-path';
 import { templates } from '../templates';
 
 const { log } = snooplogg('project');
@@ -44,6 +44,11 @@ export default class Project {
 
 		this.path = opts.path;
 		this.templates = opts.templates || templates;
+
+		const file = this.path && expandPath(this.path, 'tiapp.xml');
+		this.tiapp = new Tiapp({
+			file: fs.existsSync(file) ? file : undefined
+		});
 	}
 
 	/**
@@ -155,10 +160,5 @@ export default class Project {
 		// });
 
 		return 'success!';
-	}
-
-	async tiapp() {
-		// TODO: return the tiapp as JSON
-		return '{}';
 	}
 }
