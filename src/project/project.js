@@ -47,7 +47,7 @@ export default class Project {
 
 		const file = this.path && expandPath(this.path, 'tiapp.xml');
 		this.tiapp = new Tiapp({
-			file: fs.existsSync(file) ? file : undefined
+			// file: fs.existsSync(file) ? file : undefined
 		});
 	}
 
