@@ -4,6 +4,7 @@
  * feat(project): Added implementation for managing, creating, building and cleaning projects.
  * feat(templates): Bundled default project templates as dependencies and list them via a new
    templates API.
+ * feat(sdk): Added `package` to `SDK` containing the contents of the `package.json`.
  * chore: Updated dependencies.
 
 # v3.0.0 (Jan 14, 2020)

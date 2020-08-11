@@ -25,24 +25,23 @@ export default class TitaniumSDK {
 			throw new Error(`Specified Titanium SDK directory does not exist: ${dir}`);
 		}
 
-		this.name     = path.basename(dir);
-		this.manifest = null;
-		this.path     = dir;
+		this.name = path.basename(dir);
+		this.path = dir;
 
 		try {
-			for (const [ filename, prop ] of [ [ 'manifest', 'manifest' ], [ 'package', 'packageJson' ] ]) {
-				const file = path.join(dir, `${filename}.json`);
+			for (const type of [ 'manifest', 'package' ]) {
+				const file = path.join(dir, `${type}.json`);
 				if (!isFile(file)) {
-					throw new Error(`No ${filename}.json found`);
+					throw new Error(`No ${type}.json found`);
 				}
 
 				try {
-					const obj = this[prop] = fs.readJsonSync(file);
+					const obj = this[type] = fs.readJsonSync(file);
 					if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
 						throw new Error();
 					}
 				} catch (e) {
-					throw new Error(`Directory does not contain a valid ${filename}.json`);
+					throw new Error(`Directory does not contain a valid ${type}.json`);
 				}
 			}
 		} catch (err) {
