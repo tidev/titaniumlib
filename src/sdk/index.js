@@ -1,19 +1,17 @@
 import fs from 'fs-extra';
+import got from 'got';
 import options from '../options';
 import path from 'path';
 import pluralize from 'pluralize';
-import request from 'request';
 import snooplogg from 'snooplogg';
 import TitaniumSDK from './titanium-sdk';
 import tmp from 'tmp';
 
-import { architecture, buildRequestParams, extractZip, fetchJSON, os, version } from '../util';
+import { architecture, extractZip, fetchJSON, os, TaskTracker, version } from '../util';
 import { arrayify, cacheSync, get, unique } from 'appcd-util';
 import { expandPath } from 'appcd-path';
-import { isDir } from 'appcd-fs';
-import { STATUS_CODES } from 'http';
-
 import { getInstallPaths } from '../locations';
+import { isDir } from 'appcd-fs';
 
 export { TitaniumSDK };
 
@@ -163,47 +161,6 @@ export function getPaths() {
 }
 
 /**
- * Tracks install tasks and their progress.
- */
-class TaskTracker {
-	constructor(callback, tasks) {
-		if (callback && typeof callback !== 'function') {
-			throw new TypeError('Expected progress callback to be a function');
-		}
-		this.callback = callback || (() => {});
-		this.tasks = tasks;
-		this.currentTask = 1;
-		this.currentProgress = 0;
-	}
-
-	startTask(hasProgress = true) {
-		if (!this.sentTasks) {
-			this.sentTasks = true;
-			this.callback({ type: 'tasks', tasks: this.tasks });
-		}
-
-		this.callback({ hasProgress, task: this.currentTask, type: 'task-start' });
-	}
-
-	progress(value, force) {
-		const prev = this.currentProgress;
-		if (force || value - prev > 0.01) {
-			this.currentProgress = value;
-			this.callback({ task: this.currentTask, type: 'task-progress', progress: value });
-		}
-	}
-
-	endTask() {
-		if (this.currentProgress < 1) {
-			this.progress(1, true);
-		}
-		this.callback({ task: this.currentTask, type: 'task-end' });
-		this.currentTask++;
-		this.currentProgress = 0;
-	}
-}
-
-/**
  * Install a Titanium SDK from either a URI or version. A URI may be either a local file, a URL, an
  * SDK version, a CI branch, or a CI branch and build hash.
  *
@@ -225,15 +182,15 @@ export async function install(params = {}) {
 		throw new TypeError('Expected params to be an object');
 	}
 
+	if (params.uri !== undefined && typeof params.uri !== 'string') {
+		throw new TypeError('Expected URI to be a string');
+	}
+
 	const tracker = new TaskTracker(params.onProgress, [
 		'Extracting SDK',
 		'Installing SDK files',
 		'Installing module files'
 	]);
-
-	if (params.uri !== undefined && typeof params.uri !== 'string') {
-		throw new TypeError('Expected URI to be a string');
-	}
 
 	const titaniumDir = params.installDir ? expandPath(params.installDir) : getInstallPaths()[0];
 	if (!titaniumDir) {
@@ -367,57 +324,51 @@ export async function install(params = {}) {
 		tracker.startTask();
 
 		let { downloadDir } = params;
-
-		downloadedFile = tmp.tmpNameSync({
-			dir: downloadDir,
-			prefix: 'titaniumlib-',
-			postfix: '.zip'
-		});
-
-		if (!downloadDir) {
+		if (downloadDir) {
+			downloadedFile = path.join(downloadDir, `titanium-sdk-download-${Date.now()}.zip`);
+		} else {
+			downloadedFile = tmp.tmpNameSync({
+				prefix: 'titaniumlib-',
+				postfix: '.zip'
+			});
 			downloadDir = path.dirname(downloadedFile);
 			params.keep = false;
 		}
 		await fs.mkdirp(downloadDir);
 
+		log(`Downloading ${highlight(url)} => ${highlight(downloadedFile)}`);
+		await got(url);
+
 		file = await new Promise((resolve, reject) => {
 			log(`Downloading ${highlight(url)} => ${highlight(downloadedFile)}`);
-			const req = request(buildRequestParams({ url }));
+			const stream = got.stream(url, { retry: 0 })
+				.on('downloadProgress', ({ percent }) => tracker.progress(percent))
+				.on('error', reject)
+				.on('response', response => {
+					const { headers } = response;
+					const cd = headers['content-disposition'];
+					let m = cd && cd.match(/filename[^;=\n]*=['"]*(.*?\2|[^'";\n]*)/);
+					let filename = m && m[1];
 
-			const out = fs.createWriteStream(downloadedFile);
-			req.pipe(out);
-
-			req.on('response', response => {
-				const { headers, statusCode } = response;
-
-				if (statusCode >= 400) {
-					fs.removeSync(downloadedFile);
-					return reject(new Error(`${statusCode} ${STATUS_CODES[statusCode]}`));
-				}
-
-				let counter = 0;
-				const total = parseInt(headers['content-length']);
-
-				response.on('data', buffer => {
-					counter += buffer.length;
-					tracker.progress(counter / total);
-				});
-
-				out.on('close', () => {
-					tracker.endTask();
-
-					let file = downloadedFile;
-					const m = url.match(/.*\/(.+\.zip)$/);
-					if (m) {
-						file = path.join(downloadDir, m[1]);
-						fs.renameSync(downloadedFile, file);
-						downloadedFile = file;
+					// try to determine the file extension by the filename in the url
+					if (!filename && (m = url.match(/.*\/(.+\.zip)$/))) {
+						filename = m[0];
 					}
-					resolve(file);
-				});
-			});
 
-			req.once('error', reject);
+					const out = fs.createWriteStream(downloadedFile);
+					out.on('error', reject);
+					out.on('close', () => {
+						tracker.endTask();
+
+						let file = downloadedFile;
+						if (filename) {
+							file = path.join(downloadDir, filename);
+							fs.renameSync(downloadedFile, file);
+						}
+						resolve(file);
+					});
+					stream.pipe(out);
+				});
 		});
 	}
 
@@ -464,10 +415,8 @@ export async function install(params = {}) {
 		dest = path.join(titaniumDir, 'mobilesdk', os, name);
 
 		tracker.startTask(false);
-
 		log(`Moving SDK files: ${highlight(src)} => ${highlight(dest)}`);
 		await fs.move(src, dest, { overwrite: true });
-
 		tracker.endTask();
 
 		// install the modules

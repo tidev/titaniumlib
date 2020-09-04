@@ -5,6 +5,8 @@
  * feat(templates): Bundled default project templates as dependencies and list them via a new
    templates API.
  * feat(sdk): Added `package` to `SDK` containing the contents of the `package.json`.
+ * feat(module): Added `install()` method.
+ * refactor: Replaced `request` with `got`.
  * chore: Updated dependencies.
 
 # v3.0.0 (Jan 14, 2020)
