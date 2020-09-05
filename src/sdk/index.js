@@ -336,9 +336,6 @@ export async function install(params = {}) {
 		}
 		await fs.mkdirp(downloadDir);
 
-		log(`Downloading ${highlight(url)} => ${highlight(downloadedFile)}`);
-		await got(url);
-
 		file = await new Promise((resolve, reject) => {
 			log(`Downloading ${highlight(url)} => ${highlight(downloadedFile)}`);
 			const stream = got.stream(url, { retry: 0 })
@@ -352,7 +349,7 @@ export async function install(params = {}) {
 
 					// try to determine the file extension by the filename in the url
 					if (!filename && (m = url.match(/.*\/(.+\.zip)$/))) {
-						filename = m[0];
+						filename = m[1];
 					}
 
 					const out = fs.createWriteStream(downloadedFile);
@@ -363,7 +360,7 @@ export async function install(params = {}) {
 						let file = downloadedFile;
 						if (filename) {
 							file = path.join(downloadDir, filename);
-							fs.renameSync(downloadedFile, file);
+							fs.moveSync(downloadedFile, file, { overwrite: true });
 						}
 						resolve(file);
 					});
