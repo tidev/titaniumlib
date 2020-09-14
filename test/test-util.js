@@ -85,7 +85,9 @@ describe('extractZip()', () => {
 		expect(fileLinkStat.isSymbolicLink()).to.equal(true);
 
 		const folderLink = path.join(tempDir, 'symlinks/folderlink');
-		expect(fs.existsSync(folderLink)).to.equal(true);
+		// Since node 12.16.0 (https://github.com/nodejs/node/commit/366a45be2a) this existsSync
+		// call will fail even though the symlink exists and is valid on disk
+		// expect(fs.existsSync(folderLink)).to.equal(true);
 		const folderLinkStat = fs.lstatSync(folderLink);
 		expect(folderLinkStat.isSymbolicLink()).to.equal(true);
 		const target = fs.readlinkSync(folderLink);
