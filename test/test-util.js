@@ -67,7 +67,7 @@ describe('extractZip()', () => {
 	it('should support symlinks', async () => {
 		const tempDir = tmp.dirSync().name;
 		await extractZip({ dest: tempDir, file: path.join(__dirname, 'fixtures', 'symlinks.zip') });
-		console.log(fs.readdirSync(path.join(tempDir, 'symlinks')));
+
 		const folder = path.join(tempDir, 'symlinks/folder');
 		expect(fs.existsSync(folder)).to.equal(true);
 		const folderStat = fs.statSync(folder);

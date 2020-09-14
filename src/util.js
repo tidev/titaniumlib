@@ -129,7 +129,7 @@ export async function extractZip(params) {
 					}
 
 					const fullPath = path.join(dest, entry.fileName);
-					let mode = (entry.externalFileAttributes >>> 16) & 0xFFFF;
+					const mode = (entry.externalFileAttributes >>> 16) || 0o644;
 
 					const symlink = (mode & fs.constants.S_IFMT) === fs.constants.S_IFLNK;
 					let isDir = (mode & fs.constants.S_IFMT) === fs.constants.S_IFDIR;
@@ -139,10 +139,6 @@ export async function extractZip(params) {
 					const madeBy = entry.versionMadeBy >> 8;
 					if (!isDir) {
 						isDir = (madeBy === 0 && entry.externalFileAttributes === 16);
-					}
-
-					if (mode === 0) {
-						mode = 0o644;
 					}
 
 					if (symlink) {
