@@ -153,6 +153,9 @@ export async function extractZip(params) {
 								readStream.on('error', abort);
 								readStream.on('end', () => {
 									let str = Buffer.concat(chunks).toString('utf8');
+									if (fs.existsSync(fullPath)) {
+										fs.unlinkSync(fullPath);
+									}
 									fs.symlinkSync(str, fullPath);
 									zipfile.readEntry();
 								});
