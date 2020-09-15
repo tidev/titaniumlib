@@ -93,4 +93,36 @@ describe('extractZip()', () => {
 		const target = fs.readlinkSync(folderLink);
 		expect(target).to.equal(`folder${path.sep}`);
 	});
+
+	it('should handle if a symlink already exists', async () => {
+		const tempDir = tmp.dirSync().name;
+		await extractZip({ dest: tempDir, file: path.join(__dirname, 'fixtures', 'symlinks.zip') });
+
+		await extractZip({ dest: tempDir, file: path.join(__dirname, 'fixtures', 'symlinks.zip') });
+
+		const folder = path.join(tempDir, 'symlinks/folder');
+		expect(fs.existsSync(folder)).to.equal(true);
+		const folderStat = fs.statSync(folder);
+		expect(folderStat.isDirectory()).to.equal(true);
+
+		const file = path.join(tempDir, 'symlinks/folder/testfile.txt');
+		expect(fs.existsSync(file)).to.equal(true);
+		const fileStat = fs.statSync(file);
+		expect(fileStat.isDirectory()).to.equal(false);
+		expect(fileStat.isFile()).to.equal(true);
+
+		const fileLink = path.join(tempDir, 'symlinks/link.txt');
+		expect(fs.existsSync(fileLink)).to.equal(true);
+		const fileLinkStat = fs.lstatSync(fileLink);
+		expect(fileLinkStat.isSymbolicLink()).to.equal(true);
+
+		const folderLink = path.join(tempDir, 'symlinks/folderlink');
+		// Since node 12.16.0 (https://github.com/nodejs/node/commit/366a45be2a) this existsSync
+		// call will fail even though the symlink exists and is valid on disk
+		// expect(fs.existsSync(folderLink)).to.equal(true);
+		const folderLinkStat = fs.lstatSync(folderLink);
+		expect(folderLinkStat.isSymbolicLink()).to.equal(true);
+		const target = fs.readlinkSync(folderLink);
+		expect(target).to.equal(`folder${path.sep}`);
+	});
 });

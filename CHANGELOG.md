@@ -1,3 +1,7 @@
+# v3.0.1 (Sep 15, 2020)
+
+ * fix(sdk): Preserve symlinks on extraction.
+
 # v3.0.0 (Jan 14, 2020)
 
  * BREAKING CHANGE: Updated `install()` to return a `TitaniumSDK` object for the newly installed
