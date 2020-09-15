@@ -6,6 +6,7 @@
    templates API.
  * feat(sdk): Added `package` to `SDK` containing the contents of the `package.json`.
  * feat(module): Added `install()` method.
+ * feat(tiapp): Added new `Tiapp` class with support for loading and saving the `tiapp.xml`.
  * refactor: Replaced `request` with `got`.
  * chore: Updated dependencies.
 
