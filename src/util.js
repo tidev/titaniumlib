@@ -129,8 +129,36 @@ export async function extractZip(params) {
 					}
 
 					const fullPath = path.join(dest, entry.fileName);
+					const mode = (entry.externalFileAttributes >>> 16) || 0o644;
 
-					if (/\/$/.test(entry.fileName)) {
+					const symlink = (mode & fs.constants.S_IFMT) === fs.constants.S_IFLNK;
+					let isDir = (mode & fs.constants.S_IFMT) === fs.constants.S_IFDIR;
+
+					// check for windows weird way of specifying a directory
+					// https://github.com/maxogden/extract-zip/issues/13#issuecomment-154494566
+					const madeBy = entry.versionMadeBy >> 8;
+					if (!isDir) {
+						isDir = (madeBy === 0 && entry.externalFileAttributes === 16);
+					}
+
+					if (symlink) {
+						fs.mkdirp(path.dirname(fullPath), () => {
+							zipfile.openReadStream(entry, (err, readStream) => {
+								if (err) {
+									return abort(err);
+								}
+
+								const chunks = [];
+								readStream.on('data', chunk => chunks.push(chunk));
+								readStream.on('error', abort);
+								readStream.on('end', () => {
+									let str = Buffer.concat(chunks).toString('utf8');
+									fs.symlinkSync(str, fullPath);
+									zipfile.readEntry();
+								});
+							});
+						});
+					} else if (isDir) {
 						fs.mkdirp(fullPath, () => zipfile.readEntry());
 					} else {
 						fs.mkdirp(path.dirname(fullPath), () => {
@@ -140,7 +168,7 @@ export async function extractZip(params) {
 								}
 
 								const writeStream = fs.createWriteStream(fullPath,  {
-									mode: entry.externalFileAttributes >>> 16
+									mode
 								});
 								writeStream.on('close', () => zipfile.readEntry());
 								writeStream.on('error', abort);
