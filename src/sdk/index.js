@@ -1,12 +1,11 @@
 import fs from 'fs-extra';
-import got from 'got';
 import options from '../options';
 import path from 'path';
 import pluralize from 'pluralize';
 import snooplogg from 'snooplogg';
 import TitaniumSDK from './titanium-sdk';
 import tmp from 'tmp';
-
+import * as request from '@axway/amplify-request';
 import { architecture, extractZip, fetchJSON, os, TaskTracker, version } from '../util';
 import { arrayify, cacheSync, get, unique } from 'appcd-util';
 import { expandPath } from 'appcd-path';
@@ -338,6 +337,7 @@ export async function install(params = {}) {
 
 		file = await new Promise((resolve, reject) => {
 			log(`Downloading ${highlight(url)} => ${highlight(downloadedFile)}`);
+			const got = request.init({ defaults: options.network });
 			const stream = got.stream(url, { retry: 0 })
 				.on('downloadProgress', ({ percent }) => tracker.progress(percent))
 				.on('error', reject)

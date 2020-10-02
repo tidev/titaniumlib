@@ -7,7 +7,7 @@
  * feat(sdk): Added `package` to `SDK` containing the contents of the `package.json`.
  * feat(module): Added `install()` method.
  * feat(tiapp): Added new `Tiapp` class with support for loading and saving the `tiapp.xml`.
- * refactor: Replaced `request` with `got`.
+ * feat: Added HTTP proxy support.
  * chore: Updated dependencies.
 
 # v3.0.1 (Sep 15, 2020)

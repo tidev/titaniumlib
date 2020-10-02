@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
 import snooplogg from 'snooplogg';
-
 import { isFile } from 'appcd-fs';
 
 const { warn } = snooplogg('project-service');

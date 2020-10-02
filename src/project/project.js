@@ -146,7 +146,9 @@ export default class Project {
 		log(`Creating project in directory: ${this.path}`);
 
 		// create from template
-		// const engine = new TemplateEngine();
+		// const engine = new TemplateEngine({
+		//	requestOptions: options.network
+		// });
 
 		// engine.on('create', async (state, next) => {
 		// 	console.log('Creating the project from the template');

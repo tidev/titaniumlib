@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-
 import { expandPath } from 'appcd-path';
 import { isDir, isFile } from 'appcd-fs';
 

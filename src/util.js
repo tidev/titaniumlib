@@ -1,14 +1,14 @@
 import fs from 'fs-extra';
-import got from 'got';
+import options from './options';
 import path from 'path';
 import semver from 'semver';
 import snooplogg from 'snooplogg';
 import yauzl from 'yauzl';
-
+import * as request from '@axway/amplify-request';
 import { arch } from 'appcd-util';
 import { isFile } from 'appcd-fs';
 
-const { log } = snooplogg;
+const { log } = snooplogg('titaniumlib:util');
 const { highlight } = snooplogg.styles;
 
 /**
@@ -148,10 +148,8 @@ export async function extractZip(params) {
  */
 export async function fetchJSON(url) {
 	log(`Fetching ${highlight(url)}`);
-	return (await got(url, {
-		responseType: 'json',
-		retry: 0
-	})).body;
+	const got = request.init({ defaults: options.network });
+	return JSON.parse((await got(url, { retry: 0 })).body);
 }
 
 /**
