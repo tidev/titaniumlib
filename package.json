@@ -24,7 +24,7 @@
     "test": "gulp test"
   },
   "dependencies": {
-    "@axway/amplify-request": "^2.0.0",
+    "@axway/amplify-request": "^2.0.1",
     "@titanium-sdk/template-app-alloy": "^1.0.0",
     "@titanium-sdk/template-app-angular": "^1.0.0",
     "@titanium-sdk/template-app-classic": "^1.0.0",
